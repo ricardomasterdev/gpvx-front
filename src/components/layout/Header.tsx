@@ -435,8 +435,8 @@ export const Header: React.FC = () => {
         </div>
       )}
 
-      {/* Seletor de Subgabinete - para admin de gabinete principal ou super usuario */}
-      {canSeeSubgabinetes && (
+      {/* Seletor de Subgabinete - para admin de gabinete principal ou super usuario (nao para usuarios de subgabinete) */}
+      {canSeeSubgabinetes && !usuario?.pertenceSubgabinete && (
         <Popover className="relative">
           {({ open, close }) => (
             <>
