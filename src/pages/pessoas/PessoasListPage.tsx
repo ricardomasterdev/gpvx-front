@@ -304,6 +304,34 @@ export const PessoasListPage: React.FC = () => {
     setEditingPessoa(null);
   };
 
+  // Handler para abrir modal de edicao pelo ID (usado quando WhatsApp duplicado)
+  const handleEditPessoaById = useCallback(async (pessoaId: string) => {
+    try {
+      const pessoaData = await pessoasService.obter(pessoaId);
+      // Converte PessoaResponse para PessoaListItem (campos basicos)
+      const pessoaListItem: PessoaListItem = {
+        id: pessoaData.id,
+        nome: pessoaData.nome,
+        genero: pessoaData.genero,
+        cpf: pessoaData.cpf,
+        celular: pessoaData.celular,
+        whatsapp: pessoaData.whatsapp,
+        email: pessoaData.email,
+        estadoId: pessoaData.estadoId,
+        municipioId: pessoaData.municipioId,
+        setorId: pessoaData.setorId,
+        bairro: pessoaData.bairro,
+        totalDemandas: pessoaData.totalDemandas,
+        ativo: pessoaData.ativo,
+        tags: pessoaData.tags,
+      };
+      setEditingPessoa(pessoaListItem);
+      setFormModalOpen(true);
+    } catch (error) {
+      toast.error('Erro ao carregar dados da pessoa');
+    }
+  }, []);
+
   const handleDelete = (pessoa: PessoaListItem) => {
     if (confirm(`Tem certeza que deseja remover "${pessoa.nome}"?`)) {
       deleteMutation.mutate(pessoa.id);
@@ -562,6 +590,7 @@ export const PessoasListPage: React.FC = () => {
         isOpen={formModalOpen}
         onClose={handleCloseFormModal}
         pessoa={editingPessoa}
+        onEditPessoa={handleEditPessoaById}
       />
 
       {/* Modal de confirmacao ativar/desativar */}

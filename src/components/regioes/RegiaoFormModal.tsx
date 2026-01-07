@@ -227,7 +227,7 @@ export const RegiaoFormModal: React.FC<RegiaoFormModalProps> = ({
               label="Nome *"
               placeholder="Nome da regiao"
               {...register('nome', {
-                required: 'Nome e obrigatorio',
+                required: 'Campo obrigatorio',
                 maxLength: { value: 100, message: 'Maximo 100 caracteres' },
               })}
               error={errors.nome?.message}

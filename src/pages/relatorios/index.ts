@@ -1,0 +1,7 @@
+export { RelatorioPessoasPorTagsPage } from './RelatorioPessoasPorTagsPage';
+export { RelatorioPessoasPorCidadePage } from './RelatorioPessoasPorCidadePage';
+export { RelatorioPessoasPorRegiaoPage } from './RelatorioPessoasPorRegiaoPage';
+export { RelatorioPessoasPorLiderancaPage } from './RelatorioPessoasPorLiderancaPage';
+export { RelatorioDemandasPorTipoPage } from './RelatorioDemandasPorTipoPage';
+export { RelatorioPessoasPorUsuarioPage } from './RelatorioPessoasPorUsuarioPage';
+export { RelatorioPessoasPorSubgabinetePage } from './RelatorioPessoasPorSubgabinetePage';

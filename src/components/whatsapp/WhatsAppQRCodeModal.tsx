@@ -48,11 +48,7 @@ export const WhatsAppQRCodeModal: React.FC<WhatsAppQRCodeModalProps> = ({
       whatsappSocket.connect(instancia.id);
 
       // Chamar API para iniciar sessao
-      const response = await whatsappService.conectar(
-        instancia.id,
-        gabinete.id,
-        instancia.nome
-      );
+      const response = await whatsappService.conectar(instancia.id);
 
       if (response.status === 'connected') {
         setModalStatus('connected');

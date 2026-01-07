@@ -137,7 +137,7 @@ export const SubgabineteFormModal: React.FC<SubgabineteFormModalProps> = ({
           <Input
             placeholder="Ex: Subgabinete Regional Norte"
             {...register('nome', {
-              required: 'Nome e obrigatorio',
+              required: 'Campo obrigatorio',
               maxLength: { value: 200, message: 'Maximo 200 caracteres' },
             })}
             error={errors.nome?.message}

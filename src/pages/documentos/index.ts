@@ -1,0 +1,1 @@
+export { DocumentosListPage } from './DocumentosListPage';

@@ -29,8 +29,8 @@ interface DemandaViewModalProps {
   demanda: DemandaListItem | null;
 }
 
-const STATUS_CONFIG: Record<StatusDemanda, { label: string; variant: 'success' | 'warning' | 'error' | 'default' | 'primary'; icon: React.ReactNode }> = {
-  aberta: { label: 'Aberta', variant: 'primary', icon: <Clock className="w-4 h-4" /> },
+const STATUS_CONFIG: Record<StatusDemanda, { label: string; variant: 'success' | 'warning' | 'error' | 'default' | 'info'; icon: React.ReactNode }> = {
+  aberta: { label: 'Aberta', variant: 'info', icon: <Clock className="w-4 h-4" /> },
   em_andamento: { label: 'Em Andamento', variant: 'warning', icon: <Loader2 className="w-4 h-4" /> },
   aguardando: { label: 'Aguardando', variant: 'default', icon: <PauseCircle className="w-4 h-4" /> },
   concluida: { label: 'Concluida', variant: 'success', icon: <CheckCircle className="w-4 h-4" /> },

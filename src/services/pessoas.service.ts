@@ -245,7 +245,27 @@ function mapPessoaToApi(data: PessoaCreate | PessoaUpdate): any {
 // Pessoas Service
 // =====================================================
 
+export interface WhatsAppVerificacao {
+  existe: boolean;
+  pessoa: {
+    id: string;
+    nome: string;
+  } | null;
+}
+
 export const pessoasService = {
+  /**
+   * Verifica se um WhatsApp ja esta cadastrado
+   */
+  async verificarWhatsApp(whatsapp: string, excluirId?: string): Promise<WhatsAppVerificacao> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('whatsapp', whatsapp);
+    if (excluirId) queryParams.append('excluir_id', excluirId);
+
+    const { data } = await api.get<WhatsAppVerificacao>(`/pessoas/verificar-whatsapp?${queryParams.toString()}`);
+    return data;
+  },
+
   async listar(params: ListPessoasParams = {}): Promise<PaginatedPessoasResponse> {
     const queryParams = new URLSearchParams();
 
@@ -303,5 +323,19 @@ export const pessoasService = {
       params: { per_page: 100 },
     });
     return data.items.map(mapPessoaListFromApi);
+  },
+
+  async listarSimples(search?: string): Promise<{ id: string; nome: string }[]> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('per_page', '100');
+    if (search) queryParams.append('search', search);
+
+    const query = queryParams.toString();
+    const { data } = await api.get<any>(`/pessoas${query ? `?${query}` : ''}`);
+
+    return data.items.map((p: any) => ({
+      id: p.id,
+      nome: p.nome,
+    }));
   },
 };

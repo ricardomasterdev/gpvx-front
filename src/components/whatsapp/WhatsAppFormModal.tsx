@@ -229,7 +229,7 @@ export const WhatsAppFormModal: React.FC<WhatsAppFormModalProps> = ({
         <Input
           placeholder="Ex: WhatsApp Principal"
           {...register('nome', {
-            required: 'Nome e obrigatorio',
+            required: 'Campo obrigatorio',
             maxLength: { value: 100, message: 'Maximo 100 caracteres' },
           })}
           error={errors.nome?.message}

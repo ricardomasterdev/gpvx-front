@@ -76,6 +76,7 @@ export const GabineteFormModal: React.FC<GabineteFormModalProps> = ({
           status: 'ativo',
           superUsuario: false,
           dataCriacao: '',
+          isSubgabinete: false,
         });
       } else {
         setSelectedParlamentar(null);
@@ -174,7 +175,7 @@ export const GabineteFormModal: React.FC<GabineteFormModalProps> = ({
           <Input
             placeholder="Ex: Gabinete do Deputado Silva"
             {...register('nome', {
-              required: 'Nome e obrigatorio',
+              required: 'Campo obrigatorio',
               maxLength: { value: 200, message: 'Maximo 200 caracteres' },
             })}
             error={errors.nome?.message}

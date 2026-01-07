@@ -43,7 +43,9 @@
       "Bash(node:*)",
       "Bash(timeout /t 3 /nobreak)",
       "Bash(cmd /c \"taskkill /F /PID 16048\")",
-      "Bash(py update_whatsapp_service.py:*)"
+      "Bash(py update_whatsapp_service.py:*)",
+      "Bash(ls -la \"C:\\\\gpvx-front\\\\src\\\\components\\\\dashboard\"\" 2>/dev/null || echo \"No dashboard components folder \")",
+      "Bash(.venv/Scripts/python.exe:*)"
     ]
   }
 }

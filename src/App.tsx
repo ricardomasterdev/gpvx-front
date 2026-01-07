@@ -14,6 +14,16 @@ import { DemandasListPage } from './pages/demandas';
 import { UsuariosGabineteListPage } from './pages/usuarios';
 import { WhatsAppListPage } from './pages/whatsapp';
 import { RegioesListPage } from './pages/regioes';
+import {
+  RelatorioPessoasPorTagsPage,
+  RelatorioPessoasPorCidadePage,
+  RelatorioPessoasPorRegiaoPage,
+  RelatorioPessoasPorLiderancaPage,
+  RelatorioDemandasPorTipoPage,
+  RelatorioPessoasPorUsuarioPage,
+  RelatorioPessoasPorSubgabinetePage,
+} from './pages/relatorios';
+import { DocumentosListPage } from './pages/documentos';
 import { useAuthStore } from './stores/authStore';
 import { LoadingScreen } from './components/ui';
 
@@ -53,7 +63,7 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/gpvx">
         <Routes>
           <Route element={<PublicRoute><AuthLayout /></PublicRoute>}>
             <Route path="/login" element={<LoginPage />} />
@@ -72,8 +82,16 @@ function App() {
             <Route path="/tags" element={<TagsListPage />} />
             <Route path="/usuarios" element={<UsuariosGabineteListPage />} />
             <Route path="/regioes" element={<RegioesListPage />} />
-            <Route path="/relatorios" element={<PlaceholderPage title="Relatorios" />} />
-            <Route path="/documentos" element={<PlaceholderPage title="Documentos" />} />
+            {/* Rotas de Relatorios */}
+            <Route path="/relatorios/pessoas-por-tags" element={<RelatorioPessoasPorTagsPage />} />
+            <Route path="/relatorios/pessoas-por-cidade" element={<RelatorioPessoasPorCidadePage />} />
+            <Route path="/relatorios/pessoas-por-regiao" element={<RelatorioPessoasPorRegiaoPage />} />
+            <Route path="/relatorios/pessoas-por-lideranca" element={<RelatorioPessoasPorLiderancaPage />} />
+            <Route path="/relatorios/demandas-por-tipo" element={<RelatorioDemandasPorTipoPage />} />
+            <Route path="/relatorios/pessoas-por-usuario" element={<RelatorioPessoasPorUsuarioPage />} />
+            <Route path="/relatorios/pessoas-por-subgabinete" element={<RelatorioPessoasPorSubgabinetePage />} />
+            {/* Rotas de Gestao de Documentos */}
+            <Route path="/documentos" element={<DocumentosListPage />} />
             <Route path="/whatsapp" element={<WhatsAppListPage />} />
             <Route path="/configuracoes" element={<PlaceholderPage title="Configuracoes" />} />
             <Route path="/perfil" element={<PlaceholderPage title="Meu Perfil" />} />

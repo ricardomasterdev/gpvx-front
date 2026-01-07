@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Building2,
   Tags,
   Cake,
@@ -21,13 +22,32 @@ import {
   Shield,
   UserCog,
   MessageSquare,
-  User,
   Layers,
+  Tag,
+  MapPinned,
+  UserCheck,
+  FolderKanban,
+  User,
+  Building,
 } from 'lucide-react';
 import { Avatar } from '../ui';
 
+// Interface para itens de menu
+interface MenuItem {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  hideForSubgabinete?: boolean;
+  children?: MenuItem[];
+}
+
+interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
 // Itens de menu com flag para indicar se deve esconder para usuarios de subgabinete
-const menuItems = [
+const menuItems: MenuSection[] = [
   {
     title: 'Principal',
     items: [
@@ -50,13 +70,32 @@ const menuItems = [
   {
     title: 'Relatorios',
     items: [
-      { icon: BarChart3, label: 'Relatorios', path: '/relatorios', hideForSubgabinete: true },
-      { icon: FileText, label: 'Documentos', path: '/documentos', hideForSubgabinete: true },
+      {
+        icon: BarChart3,
+        label: 'Relatorios',
+        path: '/relatorios',
+        hideForSubgabinete: true,
+        children: [
+          { icon: Tag, label: 'Por Tags', path: '/relatorios/pessoas-por-tags' },
+          { icon: MapPinned, label: 'Por Cidade', path: '/relatorios/pessoas-por-cidade' },
+          { icon: MapPin, label: 'Por Regiao', path: '/relatorios/pessoas-por-regiao' },
+          { icon: UserCheck, label: 'Por Lideranca', path: '/relatorios/pessoas-por-lideranca' },
+          { icon: FolderKanban, label: 'Demandas por Tipo', path: '/relatorios/demandas-por-tipo' },
+          { icon: User, label: 'Por Usuario', path: '/relatorios/pessoas-por-usuario' },
+          { icon: Building, label: 'Por Subgabinete', path: '/relatorios/pessoas-por-subgabinete' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Gestao de Documentos',
+    items: [
+      { icon: FileText, label: 'Documentos', path: '/documentos' },
     ],
   },
 ];
 
-const adminMenuItems = [
+const adminMenuItems: MenuSection[] = [
   {
     title: 'Principal',
     items: [
@@ -75,8 +114,10 @@ const adminMenuItems = [
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { usuario, gabinete, logout } = useAuthStore();
   const { sidebarCollapsed, toggleSidebarCollapsed } = useUIStore();
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
   const handleLogout = () => {
     logout();
@@ -89,8 +130,30 @@ export const Sidebar: React.FC = () => {
   // Verifica se usuario e atendente (nao pode ver Gestao nem Configuracoes)
   const isAtendente = usuario?.perfilCodigo?.toLowerCase() === 'atendente';
 
+  // Toggle submenu expandido
+  const toggleSubmenu = (path: string) => {
+    setExpandedMenus(prev =>
+      prev.includes(path)
+        ? prev.filter(p => p !== path)
+        : [...prev, path]
+    );
+  };
+
+  // Verifica se o submenu esta ativo
+  const isSubmenuActive = (item: MenuItem): boolean => {
+    if (item.children) {
+      return item.children.some(child => location.pathname.startsWith(child.path));
+    }
+    return false;
+  };
+
+  // Verifica se o submenu deve estar expandido (ativo ou manualmente)
+  const isSubmenuExpanded = (item: MenuItem): boolean => {
+    return expandedMenus.includes(item.path) || isSubmenuActive(item);
+  };
+
   // Filtra itens de menu baseado no tipo de usuario
-  const filterMenuItems = (items: typeof menuItems) => {
+  const filterMenuItems = (items: MenuSection[]): MenuSection[] => {
     let filtered = items;
 
     // Atendente nao ve secao Gestao nem Relatorios
@@ -119,6 +182,126 @@ export const Sidebar: React.FC = () => {
       ? [...filterMenuItems(menuItems), ...adminMenuItems]  // Super usuario com gabinete - ve tudo (filtrado se subgabinete)
       : adminMenuItems  // Super usuario sem gabinete - apenas admin
     : filterMenuItems(menuItems);  // Usuario normal (filtrado se subgabinete ou atendente)
+
+  // Renderiza um item de menu
+  const renderMenuItem = (item: MenuItem, sectionTitle: string) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = isSubmenuExpanded(item);
+    const isActive = isSubmenuActive(item);
+
+    if (hasChildren) {
+      return (
+        <li key={item.path}>
+          <button
+            onClick={() => toggleSubmenu(item.path)}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 w-full',
+              isActive
+                ? sectionTitle === 'Administracao'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
+                  : 'bg-gradient-to-r from-primary-500 to-emerald-500 text-white shadow-md shadow-primary-500/25'
+                : sectionTitle === 'Administracao'
+                  ? 'text-amber-600 hover:bg-amber-50'
+                  : 'text-slate-600 hover:bg-primary-50 hover:text-primary-700',
+              sidebarCollapsed && 'justify-center px-2'
+            )}
+            title={sidebarCollapsed ? item.label : undefined}
+          >
+            <item.icon className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && (
+              <>
+                <span className="flex-1 text-left">{item.label}</span>
+                <ChevronDown
+                  className={cn(
+                    'w-4 h-4 transition-transform duration-200',
+                    isExpanded && 'rotate-180'
+                  )}
+                />
+              </>
+            )}
+          </button>
+
+          {/* Submenu */}
+          {!sidebarCollapsed && (
+            <ul
+              className={cn(
+                'overflow-hidden transition-all duration-200',
+                isExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'
+              )}
+            >
+              {item.children!.map(child => (
+                <li key={child.path}>
+                  <NavLink
+                    to={child.path}
+                    className={({ isActive: childActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3 py-2 pl-11 rounded-xl text-sm font-medium transition-all duration-200',
+                        childActive
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                      )
+                    }
+                  >
+                    <child.icon className="w-4 h-4 flex-shrink-0" />
+                    <span>{child.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Tooltip para submenu quando sidebar colapsada */}
+          {sidebarCollapsed && (
+            <div className="absolute left-full ml-2 top-0 min-w-[180px] bg-white rounded-xl shadow-lg border border-slate-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <p className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">{item.label}</p>
+              {item.children!.map(child => (
+                <NavLink
+                  key={child.path}
+                  to={child.path}
+                  className={({ isActive: childActive }) =>
+                    cn(
+                      'flex items-center gap-2 px-3 py-2 text-sm transition-colors',
+                      childActive
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    )
+                  }
+                >
+                  <child.icon className="w-4 h-4" />
+                  {child.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </li>
+      );
+    }
+
+    return (
+      <li key={item.path}>
+        <NavLink
+          to={item.path}
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+              isActive
+                ? sectionTitle === 'Administracao'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
+                  : 'bg-gradient-to-r from-primary-500 to-emerald-500 text-white shadow-md shadow-primary-500/25'
+                : sectionTitle === 'Administracao'
+                  ? 'text-amber-600 hover:bg-amber-50'
+                  : 'text-slate-600 hover:bg-primary-50 hover:text-primary-700',
+              sidebarCollapsed && 'justify-center px-2'
+            )
+          }
+          title={sidebarCollapsed ? item.label : undefined}
+        >
+          <item.icon className="w-5 h-5 flex-shrink-0" />
+          {!sidebarCollapsed && <span>{item.label}</span>}
+        </NavLink>
+      </li>
+    );
+  };
 
   return (
     <aside
@@ -218,30 +401,7 @@ export const Sidebar: React.FC = () => {
               </p>
             )}
             <ul className="space-y-1">
-              {section.items.map((item) => (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                        isActive
-                          ? section.title === 'Administracao'
-                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
-                            : 'bg-gradient-to-r from-primary-500 to-emerald-500 text-white shadow-md shadow-primary-500/25'
-                          : section.title === 'Administracao'
-                            ? 'text-amber-600 hover:bg-amber-50'
-                            : 'text-slate-600 hover:bg-primary-50 hover:text-primary-700',
-                        sidebarCollapsed && 'justify-center px-2'
-                      )
-                    }
-                    title={sidebarCollapsed ? item.label : undefined}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {!sidebarCollapsed && <span>{item.label}</span>}
-                  </NavLink>
-                </li>
-              ))}
+              {section.items.map((item) => renderMenuItem(item, section.title))}
             </ul>
           </div>
         ))}

@@ -166,7 +166,7 @@ export const CategoriaFormModal: React.FC<CategoriaFormModalProps> = ({
           <Input
             placeholder="Ex: Infraestrutura, Saude, Educacao..."
             {...register('nome', {
-              required: 'Nome e obrigatorio',
+              required: 'Campo obrigatorio',
               maxLength: { value: 100, message: 'Maximo 100 caracteres' },
             })}
             error={errors.nome?.message}

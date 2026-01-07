@@ -396,7 +396,7 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
             <Input
               placeholder="Nome do usuario"
               {...register('nome', {
-                required: 'Nome e obrigatorio',
+                required: 'Campo obrigatorio',
                 maxLength: { value: 200, message: 'Maximo 200 caracteres' },
               })}
               error={errors.nome?.message}
@@ -413,7 +413,7 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
               type="email"
               placeholder="email@exemplo.com"
               {...register('email', {
-                required: 'Email e obrigatorio',
+                required: 'Campo obrigatorio',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: 'Email invalido',
@@ -448,7 +448,7 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
               placeholder={isEditing ? 'Deixe em branco para manter' : 'Minimo 6 caracteres'}
               {...register('senha', {
                 minLength: { value: 6, message: 'Minimo 6 caracteres' },
-                required: !isEditing ? 'Senha e obrigatoria' : false,
+                required: !isEditing ? 'Campo obrigatorio' : false,
               })}
               error={errors.senha?.message}
             />

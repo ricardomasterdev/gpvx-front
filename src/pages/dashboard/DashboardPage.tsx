@@ -68,6 +68,7 @@ const SuperUserDashboard: React.FC = () => {
       subtitle: `${dashboardStats.totalGabinetes} cadastrados`,
       icon: Building2,
       color: 'bg-amber-500',
+      link: '/admin/gabinetes',
     },
     {
       title: 'Total de Usuarios',
@@ -75,6 +76,7 @@ const SuperUserDashboard: React.FC = () => {
       subtitle: `${dashboardStats.totalUsuarios} cadastrados`,
       icon: Users,
       color: 'bg-blue-500',
+      link: '/admin/usuarios',
     },
     {
       title: 'Total de Pessoas',
@@ -82,6 +84,7 @@ const SuperUserDashboard: React.FC = () => {
       subtitle: 'cadastradas no sistema',
       icon: UserCog,
       color: 'bg-green-500',
+      link: '/pessoas',
     },
     {
       title: 'Total de Demandas',
@@ -89,6 +92,7 @@ const SuperUserDashboard: React.FC = () => {
       subtitle: `${dashboardStats.demandasAbertas} abertas`,
       icon: ClipboardList,
       color: 'bg-purple-500',
+      link: '/demandas',
     },
   ] : [];
 
@@ -118,18 +122,23 @@ const SuperUserDashboard: React.FC = () => {
       ) : superUserStats.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {superUserStats.map((stat, idx) => (
-            <Card key={idx} variant="hover" className="relative overflow-hidden border-amber-100">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">{stat.title}</p>
-                  <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
-                  <p className="text-xs text-slate-400 mt-1">{stat.subtitle}</p>
+            <Link key={idx} to={stat.link}>
+              <Card variant="hover" className="relative overflow-hidden border-amber-100 cursor-pointer group">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500 mb-1">{stat.title}</p>
+                    <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                    <p className="text-xs text-slate-400 mt-1">{stat.subtitle}</p>
+                  </div>
+                  <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110', stat.color)}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', stat.color)}>
-                  <stat.icon className="w-6 h-6 text-white" />
+                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowUpRight className="w-4 h-4 text-slate-400" />
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       ) : (
@@ -141,47 +150,62 @@ const SuperUserDashboard: React.FC = () => {
       {/* Cards de Resumo */}
       {dashboardStats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-100">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <ClipboardList className="w-6 h-6 text-blue-600" />
+          <Link to="/demandas?status=aberta">
+            <Card variant="hover" className="border-blue-100 cursor-pointer group relative overflow-hidden">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                    <ClipboardList className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Demandas Abertas</p>
+                    <p className="text-2xl font-bold text-slate-900">{formatNumber(dashboardStats.demandasAbertas)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-500">Demandas Abertas</p>
-                  <p className="text-2xl font-bold text-slate-900">{formatNumber(dashboardStats.demandasAbertas)}</p>
+                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowUpRight className="w-4 h-4 text-slate-400" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="border-amber-100">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-amber-600" />
+          <Link to="/demandas?status=em_andamento">
+            <Card variant="hover" className="border-amber-100 cursor-pointer group relative overflow-hidden">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                    <Clock className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Em Andamento</p>
+                    <p className="text-2xl font-bold text-slate-900">{formatNumber(dashboardStats.demandasEmAndamento)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-500">Em Andamento</p>
-                  <p className="text-2xl font-bold text-slate-900">{formatNumber(dashboardStats.demandasEmAndamento)}</p>
+                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowUpRight className="w-4 h-4 text-slate-400" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="border-green-100">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
+          <Link to="/demandas?status=concluida">
+            <Card variant="hover" className="border-green-100 cursor-pointer group relative overflow-hidden">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Concluidas</p>
+                    <p className="text-2xl font-bold text-slate-900">{formatNumber(dashboardStats.demandasConcluidas)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-500">Concluidas</p>
-                  <p className="text-2xl font-bold text-slate-900">{formatNumber(dashboardStats.demandasConcluidas)}</p>
+                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowUpRight className="w-4 h-4 text-slate-400" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       )}
 
@@ -326,21 +350,23 @@ const GabineteDashboard: React.FC = () => {
       </div>
 
       {/* Ultimos Cadastros */}
-      <Card padding="none" className="mb-6">
-        <CardHeader className="p-6 pb-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                <UserPlus className="w-5 h-5 text-emerald-600" />
+      <Card padding="none" variant="hover" className="mb-6 group">
+        <Link to="/pessoas">
+          <CardHeader className="p-6 pb-0 cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <UserPlus className="w-5 h-5 text-emerald-600" />
+                </div>
+                <CardTitle>Últimos Cadastros</CardTitle>
               </div>
-              <CardTitle>Últimos Cadastros</CardTitle>
+              <div className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+                Ver todas
+                <ArrowUpRight className="w-4 h-4" />
+              </div>
             </div>
-            <Link to="/pessoas" className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-              Ver todas
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </CardHeader>
+          </CardHeader>
+        </Link>
         <CardContent className="p-0 mt-4">
           {dashboardData?.ultimosCadastros && dashboardData.ultimosCadastros.length > 0 ? (
             <div className="divide-y divide-slate-100">
@@ -379,16 +405,23 @@ const GabineteDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Demandas Recentes */}
         <div className="lg:col-span-2">
-          <Card padding="none">
-            <CardHeader className="p-6 pb-0">
-              <div className="flex items-center justify-between">
-                <CardTitle>Demandas Recentes</CardTitle>
-                <Link to="/demandas" className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-                  Ver todas
-                  <ArrowUpRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </CardHeader>
+          <Card padding="none" variant="hover" className="group">
+            <Link to="/demandas">
+              <CardHeader className="p-6 pb-0 cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                      <ClipboardList className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <CardTitle>Demandas Recentes</CardTitle>
+                  </div>
+                  <div className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+                    Ver todas
+                    <ArrowUpRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </CardHeader>
+            </Link>
             <CardContent className="p-0 mt-4">
               {dashboardData?.demandasRecentes && dashboardData.demandasRecentes.length > 0 ? (
                 <div className="divide-y divide-slate-100">
@@ -426,18 +459,23 @@ const GabineteDashboard: React.FC = () => {
 
         {/* Aniversariantes */}
         <div>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center">
-                    <Cake className="w-5 h-5 text-pink-600" />
+          <Card variant="hover" className="group">
+            <Link to="/aniversariantes">
+              <CardHeader className="cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                      <Cake className="w-5 h-5 text-pink-600" />
+                    </div>
+                    <CardTitle>Aniversariantes Hoje</CardTitle>
                   </div>
-                  <CardTitle>Aniversariantes Hoje</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="info">{dashboardData?.stats.aniversariantesHoje || 0}</Badge>
+                    <ArrowUpRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </div>
-                <Badge variant="info">{dashboardData?.stats.aniversariantesHoje || 0}</Badge>
-              </div>
-            </CardHeader>
+              </CardHeader>
+            </Link>
             <CardContent>
               {dashboardData?.aniversariantesHoje && dashboardData.aniversariantesHoje.length > 0 ? (
                 <div className="space-y-4">
@@ -487,35 +525,45 @@ const GabineteDashboard: React.FC = () => {
           </Card>
 
           {/* Quick Stats */}
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Resumo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+          <Link to="/demandas">
+            <Card variant="hover" className="mt-4 cursor-pointer group">
+              <CardHeader>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Total de pessoas</span>
-                  <span className="text-sm font-semibold text-slate-900">{formatNumber(dashboardData?.stats.totalPessoas || 0)}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                      <BarChart3 className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <CardTitle>Resumo</CardTitle>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Total de liderancas</span>
-                  <span className="text-sm font-semibold text-slate-900">{formatNumber(dashboardData?.stats.totalLiderancas || 0)}</span>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500">Total de pessoas</span>
+                    <span className="text-sm font-semibold text-slate-900">{formatNumber(dashboardData?.stats.totalPessoas || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500">Total de liderancas</span>
+                    <span className="text-sm font-semibold text-slate-900">{formatNumber(dashboardData?.stats.totalLiderancas || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500">Demandas em andamento</span>
+                    <span className="text-sm font-semibold text-amber-600">{formatNumber(dashboardData?.stats.demandasEmAndamento || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500">Demandas concluidas</span>
+                    <span className="text-sm font-semibold text-green-600">{formatNumber(dashboardData?.stats.demandasConcluidas || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500">Demandas atrasadas</span>
+                    <span className="text-sm font-semibold text-red-600">{formatNumber(dashboardData?.stats.demandasAtrasadas || 0)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Demandas em andamento</span>
-                  <span className="text-sm font-semibold text-amber-600">{formatNumber(dashboardData?.stats.demandasEmAndamento || 0)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Demandas concluidas</span>
-                  <span className="text-sm font-semibold text-green-600">{formatNumber(dashboardData?.stats.demandasConcluidas || 0)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Demandas atrasadas</span>
-                  <span className="text-sm font-semibold text-red-600">{formatNumber(dashboardData?.stats.demandasAtrasadas || 0)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

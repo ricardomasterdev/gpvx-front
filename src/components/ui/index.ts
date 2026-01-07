@@ -14,3 +14,4 @@ export * from './EmptyState';
 export * from './DataTable';
 export * from './Pagination';
 export * from './SearchFilter';
+export * from './ActionMenu';

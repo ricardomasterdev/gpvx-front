@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -18,13 +18,25 @@ import {
   Plus,
   Tag,
   X,
+  Edit,
+  Trash2,
+  FileUp,
+  Eye,
+  Files,
+  Upload,
+  AlertCircle,
+  ClipboardList,
 } from 'lucide-react';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 import { Modal, Button, Input, Select, SearchableSelect, Textarea } from '../ui';
-import { pessoasService, PessoaCreate, PessoaListItem, PessoaResponse } from '../../services/pessoas.service';
+import { pessoasService, PessoaCreate, PessoaListItem, PessoaResponse, WhatsAppVerificacao } from '../../services/pessoas.service';
 import { auxiliarService, EstadoSimples, MunicipioSimples, SetorSimples } from '../../services/auxiliar.service';
 import { tagsService, TagListItem } from '../../services/tags.service';
+import { documentosService, Documento, DocumentoCreate, compromissosService, CompromissoSimples, CompromissoCreate } from '../../services/documentos.service';
+import { demandasService, DemandaCreate, DemandaListItem, categoriasService, CategoriaListItem } from '../../services/demandas.service';
+import { CategoriaFormModal } from '../demandas/CategoriaFormModal';
 import { Genero } from '../../types';
 import { maskPhone, maskCPF, maskCEP, maskDate, dateToISO, dateFromISO, unmask, buscarCEP } from '../../utils/masks';
 
@@ -68,6 +80,7 @@ interface PessoaFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   pessoa?: PessoaListItem | null;
+  onEditPessoa?: (pessoaId: string) => void;
 }
 
 const GENERO_OPTIONS = [
@@ -85,11 +98,12 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   isOpen,
   onClose,
   pessoa,
+  onEditPessoa,
 }) => {
   const queryClient = useQueryClient();
   const isEditing = !!pessoa;
 
-  const [activeTab, setActiveTab] = useState<'dados' | 'contato' | 'endereco' | 'outros'>('dados');
+  const [activeTab, setActiveTab] = useState<'dados' | 'contato' | 'endereco' | 'outros' | 'documentos' | 'demandas'>('dados');
   // Estados para controle de criacao de setor
   const [novoSetor, setNovoSetor] = useState('');
   const [showNovoSetor, setShowNovoSetor] = useState(false);
@@ -111,6 +125,71 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   const [showLiderancaResults, setShowLiderancaResults] = useState(false);
   const [selectedLideranca, setSelectedLideranca] = useState<{ id: string; nome: string } | null>(null);
   const liderancaRef = useRef<HTMLDivElement>(null);
+
+  // Estados para verificacao de WhatsApp duplicado
+  const [whatsappDuplicado, setWhatsappDuplicado] = useState<WhatsAppVerificacao | null>(null);
+  const [verificandoWhatsapp, setVerificandoWhatsapp] = useState(false);
+  const whatsappVerifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Estados para documentos
+  const [showDocumentoForm, setShowDocumentoForm] = useState(false);
+  const [editingDocumento, setEditingDocumento] = useState<Documento | null>(null);
+  const [documentoForm, setDocumentoForm] = useState({
+    titulo: '',
+    descricao: '',
+    data_documento: format(new Date(), 'yyyy-MM-dd'),
+    tipo_documento: '',
+    observacoes: '',
+    compromisso_id: '',
+    arquivo_nome: '',
+    arquivo_url: '',
+  });
+  const [showNovoCompromisso, setShowNovoCompromisso] = useState(false);
+  const [novoCompromissoTitulo, setNovoCompromissoTitulo] = useState('');
+  const [novoCompromissoData, setNovoCompromissoData] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  // Tipos de documento predefinidos
+  const TIPOS_DOCUMENTO = [
+    { value: '', label: 'Selecione um tipo...' },
+    { value: 'contrato', label: 'Contrato' },
+    { value: 'oficio', label: 'Oficio' },
+    { value: 'requerimento', label: 'Requerimento' },
+    { value: 'declaracao', label: 'Declaracao' },
+    { value: 'certidao', label: 'Certidao' },
+    { value: 'comprovante', label: 'Comprovante' },
+    { value: 'outros', label: 'Outros' },
+  ];
+
+  // Estados para demandas
+  const [showDemandaForm, setShowDemandaForm] = useState(false);
+  const [demandaForm, setDemandaForm] = useState({
+    titulo: '',
+    descricao: '',
+    dataPrazo: '',
+    prioridade: 'normal' as 'baixa' | 'normal' | 'alta' | 'urgente' | 'critica',
+    categoriaId: '',
+  });
+  const [demandaErrors, setDemandaErrors] = useState({
+    titulo: false,
+    descricao: false,
+    categoriaId: false,
+    prioridade: false,
+    dataPrazo: false,
+  });
+  const [tipoModalOpen, setTipoModalOpen] = useState(false);
+  const [tipoSearch, setTipoSearch] = useState('');
+  const [showTipoResults, setShowTipoResults] = useState(false);
+  const [selectedTipo, setSelectedTipo] = useState<CategoriaListItem | null>(null);
+  const tipoRef = useRef<HTMLDivElement>(null);
+
+  // Prioridades de demanda
+  const PRIORIDADES_DEMANDA = [
+    { value: 'baixa', label: 'Baixa', cor: 'text-slate-500' },
+    { value: 'normal', label: 'Normal', cor: 'text-blue-500' },
+    { value: 'alta', label: 'Alta', cor: 'text-amber-500' },
+    { value: 'urgente', label: 'Urgente', cor: 'text-orange-500' },
+    { value: 'critica', label: 'Critica', cor: 'text-red-500' },
+  ];
 
   const {
     register,
@@ -165,6 +244,38 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   // Estado para tags selecionadas
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+  // Buscar documentos da pessoa (apenas quando editando)
+  const { data: documentosData, isLoading: isLoadingDocumentos, refetch: refetchDocumentos } = useQuery({
+    queryKey: ['documentos-pessoa', pessoa?.id],
+    queryFn: () => documentosService.listar({ pessoaId: pessoa!.id, perPage: 100 }),
+    enabled: isOpen && isEditing && !!pessoa?.id,
+  });
+  const documentosPessoa = documentosData?.items || [];
+
+  // Buscar compromissos da pessoa (apenas quando editando)
+  const { data: compromissosData, refetch: refetchCompromissos } = useQuery({
+    queryKey: ['compromissos-pessoa', pessoa?.id],
+    queryFn: () => compromissosService.listarSimples(undefined, pessoa!.id),
+    enabled: isOpen && isEditing && !!pessoa?.id,
+  });
+  const compromissosPessoa = compromissosData || [];
+
+  // Buscar demandas da pessoa (apenas quando editando)
+  const { data: demandasData, isLoading: isLoadingDemandas, refetch: refetchDemandas } = useQuery({
+    queryKey: ['demandas-pessoa', pessoa?.id],
+    queryFn: () => demandasService.listar({ pessoaId: pessoa!.id, perPage: 100 }),
+    enabled: isOpen && isEditing && !!pessoa?.id,
+  });
+  const demandasPessoa = demandasData?.items || [];
+
+  // Buscar categorias de demanda
+  const { data: categoriasData } = useQuery({
+    queryKey: ['categorias-demanda'],
+    queryFn: () => categoriasService.listar(true),
+    enabled: isOpen && isEditing,
+  });
+  const categorias = categoriasData || [];
+
   // Buscar estados (todos - filtragem feita no componente)
   const { data: estados = [], isLoading: isLoadingEstados } = useQuery({
     queryKey: ['estados'],
@@ -186,11 +297,14 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     enabled: isOpen && !!municipioIdSelecionado,
   });
 
-  // Fechar dropdown de lideranca ao clicar fora
+  // Fechar dropdowns ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (liderancaRef.current && !liderancaRef.current.contains(event.target as Node)) {
         setShowLiderancaResults(false);
+      }
+      if (tipoRef.current && !tipoRef.current.contains(event.target as Node)) {
+        setShowTipoResults(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -355,6 +469,141 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     },
   });
 
+  // Mutation para criar documento
+  const createDocumentoMutation = useMutation({
+    mutationFn: (data: DocumentoCreate) => documentosService.criar(data),
+    onSuccess: () => {
+      toast.success('Documento cadastrado com sucesso!');
+      refetchDocumentos();
+      resetDocumentoForm();
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Erro ao cadastrar documento';
+      toast.error(message);
+    },
+  });
+
+  // Mutation para atualizar documento
+  const updateDocumentoMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => documentosService.atualizar(id, data),
+    onSuccess: () => {
+      toast.success('Documento atualizado com sucesso!');
+      refetchDocumentos();
+      resetDocumentoForm();
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Erro ao atualizar documento';
+      toast.error(message);
+    },
+  });
+
+  // Mutation para excluir documento
+  const deleteDocumentoMutation = useMutation({
+    mutationFn: (id: string) => documentosService.excluir(id),
+    onSuccess: () => {
+      toast.success('Documento excluido com sucesso!');
+      refetchDocumentos();
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Erro ao excluir documento';
+      toast.error(message);
+    },
+  });
+
+  // Mutation para criar compromisso
+  const createCompromissoMutation = useMutation({
+    mutationFn: (data: CompromissoCreate) => compromissosService.criar(data),
+    onSuccess: (compromisso) => {
+      toast.success('Compromisso criado com sucesso!');
+      setDocumentoForm({ ...documentoForm, compromisso_id: compromisso.id });
+      setShowNovoCompromisso(false);
+      setNovoCompromissoTitulo('');
+      refetchCompromissos();
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Erro ao criar compromisso';
+      toast.error(message);
+    },
+  });
+
+  // Mutation para criar demanda
+  const createDemandaMutation = useMutation({
+    mutationFn: (data: DemandaCreate) => demandasService.criar(data),
+    onSuccess: () => {
+      toast.success('Demanda criada com sucesso!');
+      refetchDemandas();
+      resetDemandaForm();
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Erro ao criar demanda';
+      toast.error(message);
+    },
+  });
+
+  const resetDocumentoForm = () => {
+    setShowDocumentoForm(false);
+    setEditingDocumento(null);
+    setDocumentoForm({
+      titulo: '',
+      descricao: '',
+      data_documento: format(new Date(), 'yyyy-MM-dd'),
+      tipo_documento: '',
+      observacoes: '',
+      compromisso_id: '',
+      arquivo_nome: '',
+      arquivo_url: '',
+    });
+    setShowNovoCompromisso(false);
+    setNovoCompromissoTitulo('');
+  };
+
+  const resetDemandaForm = () => {
+    setShowDemandaForm(false);
+    setDemandaForm({
+      titulo: '',
+      descricao: '',
+      dataPrazo: '',
+      prioridade: 'normal',
+      categoriaId: '',
+    });
+    setDemandaErrors({
+      titulo: false,
+      descricao: false,
+      categoriaId: false,
+      prioridade: false,
+      dataPrazo: false,
+    });
+    setTipoSearch('');
+    setSelectedTipo(null);
+    setShowTipoResults(false);
+  };
+
+  // Handler para salvar demanda
+  const handleSaveDemanda = () => {
+    const errors = {
+      titulo: !demandaForm.titulo.trim(),
+      descricao: !demandaForm.descricao.trim(),
+      categoriaId: !demandaForm.categoriaId,
+      prioridade: !demandaForm.prioridade,
+      dataPrazo: !demandaForm.dataPrazo,
+    };
+
+    setDemandaErrors(errors);
+
+    if (Object.values(errors).some(e => e)) {
+      return;
+    }
+
+    createDemandaMutation.mutate({
+      titulo: demandaForm.titulo.trim(),
+      descricao: demandaForm.descricao.trim(),
+      prioridade: demandaForm.prioridade,
+      categoriaId: demandaForm.categoriaId,
+      dataPrazo: demandaForm.dataPrazo,
+      pessoaId: pessoa!.id,
+    });
+  };
+
   const handleClose = () => {
     reset();
     setActiveTab('dados');
@@ -368,9 +617,88 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     setLiderancaSearch('');
     setSelectedLideranca(null);
     setShowLiderancaResults(false);
+    setWhatsappDuplicado(null);
+    setVerificandoWhatsapp(false);
+    if (whatsappVerifyTimeoutRef.current) {
+      clearTimeout(whatsappVerifyTimeoutRef.current);
+    }
+    resetDocumentoForm();
+    resetDemandaForm();
     prevEstadoRef.current = '';
     prevMunicipioRef.current = '';
     onClose();
+  };
+
+  // Handler para salvar documento
+  const handleSaveDocumento = () => {
+    if (!documentoForm.titulo.trim()) {
+      toast.error('Titulo do documento e obrigatorio');
+      return;
+    }
+    if (!documentoForm.data_documento) {
+      toast.error('Data do documento e obrigatoria');
+      return;
+    }
+
+    const data = {
+      titulo: documentoForm.titulo.trim(),
+      descricao: documentoForm.descricao.trim() || undefined,
+      data_documento: documentoForm.data_documento,
+      tipo_documento: documentoForm.tipo_documento || undefined,
+      observacoes: documentoForm.observacoes.trim() || undefined,
+      compromisso_id: documentoForm.compromisso_id || undefined,
+      arquivo_nome: documentoForm.arquivo_nome || undefined,
+      arquivo_url: documentoForm.arquivo_url || undefined,
+    };
+
+    if (editingDocumento) {
+      updateDocumentoMutation.mutate({
+        id: editingDocumento.id,
+        data,
+      });
+    } else {
+      createDocumentoMutation.mutate({
+        ...data,
+        pessoa_id: pessoa!.id,
+      } as DocumentoCreate);
+    }
+  };
+
+  // Handler para criar compromisso inline
+  const handleCreateCompromisso = () => {
+    if (!novoCompromissoTitulo.trim()) {
+      toast.error('Titulo do compromisso e obrigatorio');
+      return;
+    }
+
+    createCompromissoMutation.mutate({
+      titulo: novoCompromissoTitulo.trim(),
+      data_inicio: novoCompromissoData,
+      pessoa_id: pessoa?.id,
+    });
+  };
+
+  // Handler para editar documento
+  const handleEditDocumento = (doc: Documento) => {
+    setEditingDocumento(doc);
+    setDocumentoForm({
+      titulo: doc.titulo,
+      descricao: doc.descricao || '',
+      data_documento: doc.data_documento,
+      tipo_documento: doc.tipo_documento || '',
+      observacoes: doc.observacoes || '',
+      compromisso_id: doc.compromisso_id || '',
+      arquivo_nome: doc.arquivo_nome || '',
+      arquivo_url: doc.arquivo_url || '',
+    });
+    setShowDocumentoForm(true);
+  };
+
+  // Handler para excluir documento
+  const handleDeleteDocumento = (doc: Documento) => {
+    if (confirm(`Tem certeza que deseja excluir o documento "${doc.titulo}"?`)) {
+      deleteDocumentoMutation.mutate(doc.id);
+    }
   };
 
   // Handler para salvar tags
@@ -382,6 +710,39 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   const handleSkipTags = () => {
     handleClose();
   };
+
+  // Funcao para verificar WhatsApp duplicado (com debounce)
+  const verificarWhatsApp = useCallback(async (whatsapp: string) => {
+    // Limpa timeout anterior
+    if (whatsappVerifyTimeoutRef.current) {
+      clearTimeout(whatsappVerifyTimeoutRef.current);
+    }
+
+    const whatsappLimpo = unmask(whatsapp);
+
+    // Nao verifica se o numero esta incompleto
+    if (whatsappLimpo.length < 10) {
+      setWhatsappDuplicado(null);
+      return;
+    }
+
+    // Debounce de 500ms
+    whatsappVerifyTimeoutRef.current = setTimeout(async () => {
+      setVerificandoWhatsapp(true);
+      try {
+        const resultado = await pessoasService.verificarWhatsApp(
+          whatsapp,
+          isEditing ? pessoa?.id : undefined
+        );
+        setWhatsappDuplicado(resultado);
+      } catch (error) {
+        console.error('Erro ao verificar WhatsApp:', error);
+        setWhatsappDuplicado(null);
+      } finally {
+        setVerificandoWhatsapp(false);
+      }
+    }, 500);
+  }, [isEditing, pessoa?.id]);
 
   // Funcao para buscar CEP e preencher endereco
   const handleCEPChange = async (cepValue: string) => {
@@ -495,6 +856,10 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     { id: 'contato', label: 'Contato', icon: Phone },
     { id: 'endereco', label: 'Endereco', icon: MapPin },
     { id: 'outros', label: 'Outros', icon: FileText },
+    // Aba de documentos apenas quando editando
+    ...(isEditing ? [{ id: 'documentos', label: 'Documentos', icon: Files }] : []),
+    // Aba de demandas apenas quando editando
+    ...(isEditing ? [{ id: 'demandas', label: 'Demandas', icon: ClipboardList }] : []),
   ];
 
   const estadoOptions = estados.map((e) => ({ value: String(e.id), label: `${e.sigla} - ${e.nome}` }));
@@ -735,13 +1100,13 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
       size="lg"
     >
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 mb-6 -mx-6 px-6">
+      <div className="flex flex-wrap border-b border-slate-200 mb-6 -mx-6 px-6 gap-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab.id
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -778,14 +1143,43 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
                   minLength: { value: 15, message: 'WhatsApp incompleto' }
                 }}
                 render={({ field }) => (
-                  <Input
-                    label="WhatsApp *"
-                    placeholder="(00) 00000-0000"
-                    leftIcon={<MessageCircle className="w-4 h-4" />}
-                    value={field.value}
-                    onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                    error={errors.whatsapp?.message}
-                  />
+                  <div>
+                    <Input
+                      label="WhatsApp *"
+                      placeholder="(00) 00000-0000"
+                      leftIcon={<MessageCircle className="w-4 h-4" />}
+                      value={field.value}
+                      onChange={(e) => {
+                        const masked = maskPhone(e.target.value);
+                        field.onChange(masked);
+                        verificarWhatsApp(masked);
+                      }}
+                      error={errors.whatsapp?.message}
+                      className={whatsappDuplicado?.existe ? 'border-red-500 focus:ring-red-500' : ''}
+                      rightIcon={verificandoWhatsapp ? (
+                        <div className="animate-spin w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full" />
+                      ) : undefined}
+                    />
+                    {whatsappDuplicado?.existe && whatsappDuplicado.pessoa && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-700">
+                          Este WhatsApp ja esta cadastrado para{' '}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onEditPessoa && whatsappDuplicado.pessoa) {
+                                handleClose();
+                                onEditPessoa(whatsappDuplicado.pessoa.id);
+                              }
+                            }}
+                            className="font-semibold text-red-800 underline hover:text-red-900"
+                          >
+                            {whatsappDuplicado.pessoa.nome}
+                          </button>
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               />
 
@@ -1209,6 +1603,596 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
           </div>
         )}
 
+        {/* Tab: Documentos (apenas quando editando) */}
+        {activeTab === 'documentos' && isEditing && (
+          <div className="space-y-4">
+            {/* Header com botao de adicionar */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-500">
+                {documentosPessoa.length} documento(s) vinculado(s)
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => {
+                  resetDocumentoForm();
+                  setShowDocumentoForm(true);
+                }}
+              >
+                Novo Documento
+              </Button>
+            </div>
+
+            {/* Formulario de documento (inline) */}
+            {showDocumentoForm && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-4">
+                <h4 className="font-medium text-slate-900">
+                  {editingDocumento ? 'Editar Documento' : 'Novo Documento'}
+                </h4>
+
+                {/* Titulo */}
+                <Input
+                  label="Titulo *"
+                  placeholder="Digite o titulo do documento..."
+                  leftIcon={<FileText className="w-4 h-4" />}
+                  value={documentoForm.titulo}
+                  onChange={(e) => setDocumentoForm({ ...documentoForm, titulo: e.target.value })}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Data do Documento */}
+                  <Input
+                    label="Data do Documento *"
+                    type="date"
+                    leftIcon={<Calendar className="w-4 h-4" />}
+                    value={documentoForm.data_documento}
+                    onChange={(e) => setDocumentoForm({ ...documentoForm, data_documento: e.target.value })}
+                  />
+
+                  {/* Tipo de Documento */}
+                  <SearchableSelect
+                    label="Tipo de Documento"
+                    value={documentoForm.tipo_documento}
+                    onChange={(value) => setDocumentoForm({ ...documentoForm, tipo_documento: value })}
+                    options={TIPOS_DOCUMENTO}
+                    placeholder="Selecione um tipo..."
+                  />
+                </div>
+
+                {/* Descricao */}
+                <Textarea
+                  label="Descricao"
+                  placeholder="Descreva o documento..."
+                  rows={2}
+                  value={documentoForm.descricao}
+                  onChange={(e) => setDocumentoForm({ ...documentoForm, descricao: e.target.value })}
+                />
+
+                {/* Compromisso Vinculado */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Compromisso Vinculado
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNovoCompromisso(true)}
+                      className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Novo Compromisso
+                    </button>
+                  </div>
+                  <SearchableSelect
+                    value={documentoForm.compromisso_id}
+                    onChange={(value) => setDocumentoForm({ ...documentoForm, compromisso_id: value })}
+                    options={[
+                      { value: '', label: 'Nenhum compromisso' },
+                      ...compromissosPessoa.map((c) => ({
+                        value: c.id,
+                        label: `${c.titulo} (${format(new Date(c.data_inicio), 'dd/MM/yyyy')})`,
+                      }))
+                    ]}
+                    placeholder="Selecione um compromisso..."
+                  />
+                </div>
+
+                {/* Novo Compromisso */}
+                {showNovoCompromisso && (
+                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-medium text-slate-900">Novo Compromisso</h5>
+                      <button
+                        type="button"
+                        onClick={() => setShowNovoCompromisso(false)}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Titulo *"
+                        value={novoCompromissoTitulo}
+                        onChange={(e) => setNovoCompromissoTitulo(e.target.value)}
+                        placeholder="Titulo do compromisso..."
+                      />
+                      <Input
+                        label="Data *"
+                        type="date"
+                        value={novoCompromissoData}
+                        onChange={(e) => setNovoCompromissoData(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleCreateCompromisso}
+                        isLoading={createCompromissoMutation.isPending}
+                      >
+                        Criar Compromisso
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload de Arquivo */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Arquivo Digital
+                  </label>
+                  <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-primary-300 transition-colors cursor-pointer relative">
+                    <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                    <p className="text-sm text-slate-600">
+                      Arraste um arquivo ou clique para selecionar
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      PDF, DOC, DOCX, JPG, PNG (max. 10MB)
+                    </p>
+                    <input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setDocumentoForm({
+                            ...documentoForm,
+                            arquivo_nome: file.name,
+                          });
+                          toast.success(`Arquivo "${file.name}" selecionado`);
+                        }
+                      }}
+                    />
+                  </div>
+                  {documentoForm.arquivo_nome && (
+                    <div className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg">
+                      <span className="text-sm text-slate-600">
+                        Arquivo: <span className="font-medium">{documentoForm.arquivo_nome}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDocumentoForm({ ...documentoForm, arquivo_nome: '', arquivo_url: '' })}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Observacoes */}
+                <Textarea
+                  label="Observacoes"
+                  placeholder="Observacoes adicionais..."
+                  rows={2}
+                  value={documentoForm.observacoes}
+                  onChange={(e) => setDocumentoForm({ ...documentoForm, observacoes: e.target.value })}
+                />
+
+                {/* Botoes */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={resetDocumentoForm}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    leftIcon={<Save className="w-4 h-4" />}
+                    onClick={handleSaveDocumento}
+                    isLoading={createDocumentoMutation.isPending || updateDocumentoMutation.isPending}
+                  >
+                    {editingDocumento ? 'Salvar Alteracoes' : 'Cadastrar Documento'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de documentos */}
+            {isLoadingDocumentos ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full" />
+              </div>
+            ) : documentosPessoa.length === 0 ? (
+              <div className="text-center py-8">
+                <Files className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">Nenhum documento cadastrado</p>
+                <p className="text-sm text-slate-400">Clique em "Novo Documento" para adicionar</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {documentosPessoa.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900">{doc.titulo}</p>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          {doc.tipo_documento && (
+                            <span className="px-2 py-0.5 bg-slate-100 rounded">{doc.tipo_documento}</span>
+                          )}
+                          <span>{new Date(doc.data_documento).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {doc.arquivo_url && (
+                        <a
+                          href={doc.arquivo_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                          title="Visualizar arquivo"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleEditDocumento(doc)}
+                        className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                        title="Editar"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocumento(doc)}
+                        className="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab: Demandas (apenas quando editando) */}
+        {activeTab === 'demandas' && isEditing && (
+          <div className="space-y-4">
+            {/* Header com botao de adicionar */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-500">
+                {demandasPessoa.length} demanda(s) vinculada(s)
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => {
+                  resetDemandaForm();
+                  setShowDemandaForm(true);
+                }}
+              >
+                Nova Demanda
+              </Button>
+            </div>
+
+            {/* Formulario de demanda (inline) */}
+            {showDemandaForm && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-4">
+                <h4 className="font-medium text-slate-900 flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4" />
+                  Nova Demanda
+                </h4>
+
+                {/* Titulo */}
+                <div>
+                  <Input
+                    label="Titulo da Demanda *"
+                    placeholder="Descreva brevemente a demanda..."
+                    leftIcon={<FileText className="w-4 h-4" />}
+                    value={demandaForm.titulo}
+                    onChange={(e) => {
+                      setDemandaForm({ ...demandaForm, titulo: e.target.value });
+                      if (demandaErrors.titulo) setDemandaErrors({ ...demandaErrors, titulo: false });
+                    }}
+                    error={demandaErrors.titulo ? 'Campo obrigatorio' : undefined}
+                  />
+                </div>
+
+                {/* Descricao */}
+                <div>
+                  <Textarea
+                    label="Descricao *"
+                    placeholder="Descreva detalhadamente a demanda..."
+                    rows={4}
+                    value={demandaForm.descricao}
+                    onChange={(e) => {
+                      setDemandaForm({ ...demandaForm, descricao: e.target.value });
+                      if (demandaErrors.descricao) setDemandaErrors({ ...demandaErrors, descricao: false });
+                    }}
+                    error={demandaErrors.descricao ? 'Campo obrigatorio' : undefined}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Tipo de Demanda */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+                        <Tag className="w-4 h-4" />
+                        <span>Tipo de Demanda *</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTipoModalOpen(true)}
+                        className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        Novo Tipo
+                      </button>
+                    </div>
+                    <div className="relative" ref={tipoRef}>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Buscar tipo de demanda..."
+                          value={tipoSearch}
+                          onChange={(e) => {
+                            setTipoSearch(e.target.value);
+                            setShowTipoResults(true);
+                            if (demandaErrors.categoriaId) setDemandaErrors({ ...demandaErrors, categoriaId: false });
+                            if (!e.target.value) {
+                              setSelectedTipo(null);
+                              setDemandaForm({ ...demandaForm, categoriaId: '' });
+                            }
+                          }}
+                          onFocus={() => setShowTipoResults(true)}
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${
+                            demandaErrors.categoriaId ? 'border-red-500' : 'border-slate-200'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Resultados da busca */}
+                      {showTipoResults && categorias.filter(c =>
+                        c.nome.toLowerCase().includes(tipoSearch.toLowerCase())
+                      ).length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 max-h-48 overflow-auto">
+                          {categorias
+                            .filter(c => c.nome.toLowerCase().includes(tipoSearch.toLowerCase()))
+                            .map((categoria) => (
+                              <button
+                                key={categoria.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedTipo(categoria);
+                                  setTipoSearch(categoria.nome);
+                                  setDemandaForm({ ...demandaForm, categoriaId: categoria.id });
+                                  setShowTipoResults(false);
+                                }}
+                                className="w-full px-4 py-3 text-left hover:bg-primary-50 flex items-center gap-3"
+                              >
+                                <span
+                                  className="w-3 h-3 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: categoria.cor }}
+                                />
+                                <span className="font-medium text-slate-900 text-sm">{categoria.nome}</span>
+                              </button>
+                            ))}
+                        </div>
+                      )}
+
+                      {/* Nenhum resultado */}
+                      {showTipoResults && tipoSearch && categorias.filter(c =>
+                        c.nome.toLowerCase().includes(tipoSearch.toLowerCase())
+                      ).length === 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 p-4 text-center text-slate-500 text-sm">
+                          Nenhum tipo encontrado
+                        </div>
+                      )}
+                    </div>
+                    {selectedTipo && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedTipo.cor }}
+                        />
+                        <span className="text-sm text-slate-600">{selectedTipo.nome}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedTipo(null);
+                            setTipoSearch('');
+                            setDemandaForm({ ...demandaForm, categoriaId: '' });
+                          }}
+                          className="text-xs text-slate-400 hover:text-red-500 ml-auto"
+                        >
+                          Limpar
+                        </button>
+                      </div>
+                    )}
+                    {demandaErrors.categoriaId && (
+                      <p className="mt-1 text-xs text-red-500">Campo obrigatorio</p>
+                    )}
+                  </div>
+
+                  {/* Prioridade */}
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-700 font-medium text-sm mb-2">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Prioridade *</span>
+                    </div>
+                    <select
+                      value={demandaForm.prioridade}
+                      onChange={(e) => {
+                        setDemandaForm({ ...demandaForm, prioridade: e.target.value as any });
+                        if (demandaErrors.prioridade) setDemandaErrors({ ...demandaErrors, prioridade: false });
+                      }}
+                      className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${
+                        demandaErrors.prioridade ? 'border-red-500' : 'border-slate-200'
+                      }`}
+                    >
+                      {PRIORIDADES_DEMANDA.map((p) => (
+                        <option key={p.value} value={p.value}>{p.label}</option>
+                      ))}
+                    </select>
+                    {demandaErrors.prioridade && (
+                      <p className="mt-1 text-xs text-red-500">Campo obrigatorio</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Data Prazo */}
+                <div>
+                  <div className="flex items-center gap-2 text-slate-700 font-medium text-sm mb-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Prazo *</span>
+                  </div>
+                  <Input
+                    type="date"
+                    value={demandaForm.dataPrazo}
+                    onChange={(e) => {
+                      setDemandaForm({ ...demandaForm, dataPrazo: e.target.value });
+                      if (demandaErrors.dataPrazo) setDemandaErrors({ ...demandaErrors, dataPrazo: false });
+                    }}
+                    error={demandaErrors.dataPrazo ? 'Campo obrigatorio' : undefined}
+                  />
+                </div>
+
+                {/* Botoes */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={resetDemandaForm}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    leftIcon={<Save className="w-4 h-4" />}
+                    onClick={handleSaveDemanda}
+                    isLoading={createDemandaMutation.isPending}
+                  >
+                    Criar Demanda
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de demandas */}
+            {isLoadingDemandas ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full" />
+              </div>
+            ) : demandasPessoa.length === 0 ? (
+              <div className="text-center py-8">
+                <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">Nenhuma demanda cadastrada</p>
+                <p className="text-sm text-slate-400">Clique em "Nova Demanda" para adicionar</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {demandasPessoa.map((demanda) => {
+                  const prioridadeInfo = PRIORIDADES_DEMANDA.find(p => p.value === demanda.prioridade);
+                  return (
+                    <div
+                      key={demanda.id}
+                      className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: demanda.categoriaCor ? `${demanda.categoriaCor}20` : '#f1f5f9' }}
+                        >
+                          <ClipboardList
+                            className="w-5 h-5"
+                            style={{ color: demanda.categoriaCor || '#64748b' }}
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-slate-900">{demanda.titulo}</p>
+                            <span className={`text-xs font-medium ${prioridadeInfo?.cor || 'text-slate-500'}`}>
+                              {prioridadeInfo?.label || demanda.prioridade}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <span className="px-2 py-0.5 bg-slate-100 rounded">{demanda.numeroProtocolo}</span>
+                            {demanda.categoriaNome && (
+                              <span
+                                className="px-2 py-0.5 rounded"
+                                style={{
+                                  backgroundColor: demanda.categoriaCor ? `${demanda.categoriaCor}20` : '#f1f5f9',
+                                  color: demanda.categoriaCor || '#64748b'
+                                }}
+                              >
+                                {demanda.categoriaNome}
+                              </span>
+                            )}
+                            <span>{new Date(demanda.dataAbertura).toLocaleDateString('pt-BR')}</span>
+                            {demanda.dataPrazo && (
+                              <span className="text-amber-600">
+                                Prazo: {new Date(demanda.dataPrazo).toLocaleDateString('pt-BR')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={`px-2 py-1 text-xs font-medium rounded ${
+                          demanda.status === 'aberta' ? 'bg-blue-100 text-blue-700' :
+                          demanda.status === 'em_andamento' ? 'bg-amber-100 text-amber-700' :
+                          demanda.status === 'aguardando' ? 'bg-purple-100 text-purple-700' :
+                          demanda.status === 'concluida' ? 'bg-green-100 text-green-700' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {demanda.status === 'aberta' ? 'Aberta' :
+                           demanda.status === 'em_andamento' ? 'Em Andamento' :
+                           demanda.status === 'aguardando' ? 'Aguardando' :
+                           demanda.status === 'concluida' ? 'Concluida' :
+                           'Cancelada'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Botoes */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
           <Button
@@ -1228,6 +2212,12 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
           </Button>
         </div>
       </form>
+
+      {/* Modal de Tipo de Demanda */}
+      <CategoriaFormModal
+        isOpen={tipoModalOpen}
+        onClose={() => setTipoModalOpen(false)}
+      />
     </Modal>
   );
 };

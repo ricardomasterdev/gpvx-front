@@ -115,7 +115,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'success' | 'warni
 
 const toInstanciaListItem = (session: WhatsAppSessionItem): WhatsAppInstanciaListItem => ({
   id: session.id,
-  gabineteId: session.gabineteId,
+  gabineteId: session.gabineteId || '',
   nome: session.nome,
   telefone: session.telefone,
   status: session.status as any,
@@ -574,7 +574,7 @@ export const WhatsAppSessionsPage: React.FC = () => {
           <Button
             leftIcon={<RefreshCw className="w-4 h-4" />}
             onClick={handleRefresh}
-            loading={isLoading}
+            isLoading={isLoading}
             variant="outline"
           >
             Atualizar

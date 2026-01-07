@@ -266,7 +266,7 @@ export const DemandaFormModal: React.FC<DemandaFormModalProps> = ({
             <Input
               placeholder="Descreva brevemente a demanda"
               {...register('titulo', {
-                required: 'Titulo e obrigatorio',
+                required: 'Campo obrigatorio',
                 maxLength: { value: 300, message: 'Maximo 300 caracteres' },
               })}
               error={errors.titulo?.message}
@@ -283,7 +283,7 @@ export const DemandaFormModal: React.FC<DemandaFormModalProps> = ({
               placeholder="Descreva detalhadamente a demanda..."
               rows={4}
               {...register('descricao', {
-                required: 'Descricao e obrigatoria',
+                required: 'Campo obrigatorio',
               })}
               error={errors.descricao?.message}
             />
@@ -447,7 +447,7 @@ export const DemandaFormModal: React.FC<DemandaFormModalProps> = ({
                   Digite pelo menos 2 caracteres para buscar
                 </p>
               )}
-              <input type="hidden" {...register('pessoaId', { required: 'Selecione uma pessoa' })} />
+              <input type="hidden" {...register('pessoaId', { required: 'Campo obrigatorio' })} />
               {errors.pessoaId && !selectedPessoa && (
                 <p className="mt-1 text-xs text-red-500">{errors.pessoaId.message}</p>
               )}

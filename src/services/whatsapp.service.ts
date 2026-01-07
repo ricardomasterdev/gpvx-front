@@ -6,8 +6,8 @@ import { useAuthStore } from '../stores/authStore';
 // Configuracao
 // =====================================================
 
-const WHATSAPP_API_URL = 'http://localhost:3002/api/whatsapp';
-const WHATSAPP_WS_URL = 'http://localhost:3002';
+const WHATSAPP_API_URL = import.meta.env.VITE_WHATSAPP_API_URL || 'http://localhost:3002/api/whatsapp';
+const WHATSAPP_WS_URL = import.meta.env.VITE_WHATSAPP_WS_URL || 'http://localhost:3002';
 
 // =====================================================
 // Helper para obter token
@@ -457,6 +457,7 @@ export const whatsappService = {
     const { data } = await api.post<any>(`/whatsapp/${sessionId}/conectar`);
     return {
       success: data.success,
+      sessionId: sessionId,
       message: data.message,
       qrcode: data.qrcode,
     };

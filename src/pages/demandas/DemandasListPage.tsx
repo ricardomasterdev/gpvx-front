@@ -46,8 +46,8 @@ import { cn } from '../../utils/cn';
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_PAGE_SIZE = 20;
 
-const STATUS_CONFIG: Record<StatusDemanda, { label: string; variant: 'success' | 'warning' | 'error' | 'default' | 'primary'; icon: React.ReactNode }> = {
-  aberta: { label: 'Aberta', variant: 'primary', icon: <Clock className="w-3 h-3" /> },
+const STATUS_CONFIG: Record<StatusDemanda, { label: string; variant: 'success' | 'warning' | 'error' | 'default' | 'info'; icon: React.ReactNode }> = {
+  aberta: { label: 'Aberta', variant: 'info', icon: <Clock className="w-3 h-3" /> },
   em_andamento: { label: 'Em Andamento', variant: 'warning', icon: <Loader2 className="w-3 h-3" /> },
   aguardando: { label: 'Aguardando', variant: 'default', icon: <PauseCircle className="w-3 h-3" /> },
   concluida: { label: 'Concluida', variant: 'success', icon: <CheckCircle className="w-3 h-3" /> },

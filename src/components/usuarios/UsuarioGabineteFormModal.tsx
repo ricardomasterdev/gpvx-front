@@ -242,7 +242,7 @@ export const UsuarioGabineteFormModal: React.FC<UsuarioGabineteFormModalProps> =
             disabled={isLoadingPerfis}
           />
           {/* Campo oculto para validacao */}
-          <input type="hidden" {...register('perfilId', { required: 'Perfil e obrigatorio' })} />
+          <input type="hidden" {...register('perfilId', { required: 'Campo obrigatorio' })} />
           <p className="mt-1 text-xs text-slate-500">
             O perfil define as permissoes do usuario no sistema
           </p>
@@ -277,7 +277,7 @@ export const UsuarioGabineteFormModal: React.FC<UsuarioGabineteFormModalProps> =
             <Input
               placeholder="Nome do usuario"
               {...register('nome', {
-                required: 'Nome e obrigatorio',
+                required: 'Campo obrigatorio',
                 maxLength: { value: 200, message: 'Maximo 200 caracteres' },
               })}
               error={errors.nome?.message}
@@ -294,7 +294,7 @@ export const UsuarioGabineteFormModal: React.FC<UsuarioGabineteFormModalProps> =
               type="email"
               placeholder="email@exemplo.com"
               {...register('email', {
-                required: 'Email e obrigatorio',
+                required: 'Campo obrigatorio',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: 'Email invalido',
@@ -329,7 +329,7 @@ export const UsuarioGabineteFormModal: React.FC<UsuarioGabineteFormModalProps> =
               placeholder={isEditing ? 'Deixe em branco para manter' : 'Minimo 6 caracteres'}
               {...register('senha', {
                 minLength: { value: 6, message: 'Minimo 6 caracteres' },
-                required: !isEditing ? 'Senha e obrigatoria' : false,
+                required: !isEditing ? 'Campo obrigatorio' : false,
               })}
               error={errors.senha?.message}
             />

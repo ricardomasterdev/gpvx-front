@@ -187,7 +187,7 @@ export const TagFormModal: React.FC<TagFormModalProps> = ({
             label="Nome *"
             placeholder="Nome da tag"
             {...register('nome', {
-              required: 'Nome e obrigatorio',
+              required: 'Campo obrigatorio',
               maxLength: { value: 100, message: 'Maximo 100 caracteres' },
             })}
             error={errors.nome?.message}
