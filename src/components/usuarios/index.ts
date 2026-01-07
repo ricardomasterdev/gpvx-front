@@ -1,0 +1,1 @@
+export { UsuarioGabineteFormModal } from './UsuarioGabineteFormModal';

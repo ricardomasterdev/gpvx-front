@@ -1,0 +1,1 @@
+export { DemandasListPage } from './DemandasListPage';
