@@ -29,6 +29,7 @@ import {
   FolderKanban,
   User,
   Building,
+  X,
 } from 'lucide-react';
 import { Avatar } from '../ui';
 
@@ -116,12 +117,18 @@ export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario, gabinete, logout } = useAuthStore();
-  const { sidebarCollapsed, toggleSidebarCollapsed } = useUIStore();
+  const { sidebarCollapsed, toggleSidebarCollapsed, sidebarOpen, setSidebarOpen } = useUIStore();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleNavClick = () => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
   };
 
   // Verifica se usuario pertence a subgabinete
@@ -233,6 +240,7 @@ export const Sidebar: React.FC = () => {
                 <li key={child.path}>
                   <NavLink
                     to={child.path}
+                    onClick={handleNavClick}
                     className={({ isActive: childActive }) =>
                       cn(
                         'flex items-center gap-3 px-3 py-2 pl-11 rounded-xl text-sm font-medium transition-all duration-200',
@@ -258,6 +266,7 @@ export const Sidebar: React.FC = () => {
                 <NavLink
                   key={child.path}
                   to={child.path}
+                  onClick={handleNavClick}
                   className={({ isActive: childActive }) =>
                     cn(
                       'flex items-center gap-2 px-3 py-2 text-sm transition-colors',
@@ -281,6 +290,7 @@ export const Sidebar: React.FC = () => {
       <li key={item.path}>
         <NavLink
           to={item.path}
+          onClick={handleNavClick}
           className={({ isActive }) =>
             cn(
               'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
@@ -306,8 +316,11 @@ export const Sidebar: React.FC = () => {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-white border-r border-slate-200 flex flex-col transition-all duration-300 z-40 shadow-sm',
-        sidebarCollapsed ? 'w-20' : 'w-64'
+        'fixed left-0 top-0 h-screen bg-white border-r border-slate-200 flex flex-col transition-all duration-300 z-40 shadow-sm overflow-hidden',
+        'lg:translate-x-0',
+        sidebarCollapsed ? 'lg:w-20' : 'lg:w-64',
+        'w-[280px] sm:w-72',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}
     >
       {/* Logo */}
@@ -346,11 +359,18 @@ export const Sidebar: React.FC = () => {
         <button
           onClick={toggleSidebarCollapsed}
           className={cn(
-            'p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors',
+            'p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors hidden lg:block',
             sidebarCollapsed && 'absolute -right-3 top-6 bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-slate-800'
           )}
         >
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+        {/* Botao fechar mobile */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors lg:hidden"
+        >
+          <X className="w-5 h-5" />
         </button>
       </div>
 
@@ -413,6 +433,7 @@ export const Sidebar: React.FC = () => {
         {!isSubgabineteUser && !isAtendente && (
           <NavLink
             to="/configuracoes"
+            onClick={handleNavClick}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',

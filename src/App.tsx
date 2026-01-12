@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
@@ -38,15 +38,15 @@ const queryClient = new QueryClient({
 });
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) return <LoadingScreen />;
+  const { isAuthenticated, isLoading, _hasHydrated } = useAuthStore();
+  if (!_hasHydrated || isLoading) return <LoadingScreen />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) return <LoadingScreen />;
+  const { isAuthenticated, isLoading, _hasHydrated } = useAuthStore();
+  if (!_hasHydrated || isLoading) return <LoadingScreen />;
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
@@ -63,7 +63,7 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename="/gpvx">
+      <HashRouter>
         <Routes>
           <Route element={<PublicRoute><AuthLayout /></PublicRoute>}>
             <Route path="/login" element={<LoginPage />} />
@@ -117,7 +117,7 @@ function App() {
             </div>
           } />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
       <Toaster position="top-right" toastOptions={{
         duration: 4000,
         style: { background: '#fff', color: '#0f172a', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },

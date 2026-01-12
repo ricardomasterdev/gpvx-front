@@ -82,8 +82,10 @@ export function DataTable<T>({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner size="lg" />
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="flex items-center justify-center py-12" style={{ minWidth: '640px' }}>
+          <Spinner size="lg" />
+        </div>
       </div>
     );
   }
@@ -100,7 +102,7 @@ export function DataTable<T>({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table className="w-full">
+      <table className="w-full" style={{ minWidth: '640px' }}>
         <thead>
           <tr className={cn(
             'bg-slate-50 border-b border-slate-200',
@@ -110,7 +112,7 @@ export function DataTable<T>({
               <th
                 key={column.key}
                 className={cn(
-                  'px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider',
+                  'px-2 py-2 sm:px-4 sm:py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider',
                   alignClass[column.align || 'left'],
                   column.sortable && 'cursor-pointer hover:bg-slate-100 select-none transition-colors'
                 )}
@@ -128,7 +130,7 @@ export function DataTable<T>({
               </th>
             ))}
             {actions && (
-              <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider text-right w-32">
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider text-right w-32">
                 Acoes
               </th>
             )}
@@ -149,7 +151,7 @@ export function DataTable<T>({
                 <td
                   key={column.key}
                   className={cn(
-                    'px-4 py-3 text-sm text-slate-700',
+                    'px-2 py-2 sm:px-4 sm:py-3 text-sm text-slate-700',
                     alignClass[column.align || 'left']
                   )}
                 >
@@ -159,8 +161,8 @@ export function DataTable<T>({
                 </td>
               ))}
               {actions && (
-                <td className="px-4 py-3 text-sm text-right">
-                  <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-sm text-right">
+                  <div className="flex items-center justify-end gap-1 min-h-[44px]" onClick={(e) => e.stopPropagation()}>
                     {actions(item)}
                   </div>
                 </td>

@@ -1,18 +1,37 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-interface UIStore {
-  sidebarOpen: boolean;
-  sidebarCollapsed: boolean;
-  toggleSidebar: () => void;
-  setSidebarOpen: (open: boolean) => void;
-  toggleSidebarCollapsed: () => void;
+interface UIState {
+  sidebarCollapsed: boolean
+  sidebarOpen: boolean
 }
 
-export const useUIStore = create<UIStore>((set) => ({
-  sidebarOpen: true,
-  sidebarCollapsed: false,
-  
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
-  toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-}));
+interface UIActions {
+  toggleSidebarCollapsed: () => void
+  setSidebarCollapsed: (collapsed: boolean) => void
+  toggleSidebarOpen: () => void
+  setSidebarOpen: (open: boolean) => void
+}
+
+export const useUIStore = create<UIState & UIActions>()(
+  persist(
+    (set) => ({
+      sidebarCollapsed: false,
+      sidebarOpen: false,
+
+      toggleSidebarCollapsed: () =>
+        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+
+      setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+
+      toggleSidebarOpen: () =>
+        set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+
+      setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+    }),
+    {
+      name: 'gpvx-ui-storage',
+      partialize: (state) => ({ sidebarCollapsed: state.sidebarCollapsed }),
+    }
+  )
+)

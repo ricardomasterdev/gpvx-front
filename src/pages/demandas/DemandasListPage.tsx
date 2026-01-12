@@ -86,7 +86,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     <div className="flex items-center gap-1">
       <button
         onClick={() => onView(demanda)}
-        className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+        className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
         title="Visualizar"
       >
         <Eye className="w-4 h-4" />
@@ -96,14 +96,14 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <>
           <button
             onClick={() => onEdit(demanda)}
-            className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+            className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Editar"
           >
             <Edit className="w-4 h-4" />
           </button>
           <button
             onClick={() => onCancel(demanda)}
-            className="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Cancelar"
           >
             <XCircle className="w-4 h-4" />
@@ -427,19 +427,20 @@ export const DemandasListPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-primary-500" />
-            <h1 className="text-2xl font-bold text-slate-900">Demandas</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Demandas</h1>
           </div>
-          <p className="text-slate-500 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 mt-1">
             Gerencie as demandas do gabinete
           </p>
         </div>
         <Button
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={handleOpenNewModal}
+          className="w-full sm:w-auto"
         >
           Nova Demanda
         </Button>
@@ -447,7 +448,7 @@ export const DemandasListPage: React.FC = () => {
 
       {/* Filtros e busca */}
       <Card>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <SearchFilter
             placeholder="Buscar por protocolo, titulo, solicitante..."
             value={searchQuery}
@@ -455,6 +456,7 @@ export const DemandasListPage: React.FC = () => {
             filters={FILTERS}
             activeFilters={filters}
             onFilterChange={handleFilterChange}
+            className="w-full sm:w-auto"
           />
           <p className="text-sm text-slate-500">
             {totalItems} demanda(s) encontrada(s)

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '../../utils/cn';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
@@ -35,11 +35,23 @@ export const Pagination: React.FC<PaginationProps> = ({
   showInfo = true,
   className,
 }) => {
+  // Detecta se esta em mobile para responsividade
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
+  // Em mobile, mostra menos numeros de pagina
+  const delta = isMobile ? 1 : 2;
+
   const getVisiblePages = () => {
-    const delta = 2;
     const range: (number | string)[] = [];
     const left = Math.max(2, currentPage - delta);
     const right = Math.min(totalPages - 1, currentPage + delta);
@@ -81,14 +93,14 @@ export const Pagination: React.FC<PaginationProps> = ({
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           className={cn(
-            'p-2 rounded-lg transition-colors',
+            'p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center',
             currentPage === 1
               ? 'text-slate-300 cursor-not-allowed'
               : 'text-slate-600 hover:bg-slate-100'
           )}
           title="Primeira pagina"
         >
-          <ChevronsLeft className="w-4 h-4" />
+          <ChevronsLeft className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
 
         {/* Pagina anterior */}
@@ -96,14 +108,14 @@ export const Pagination: React.FC<PaginationProps> = ({
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={cn(
-            'p-2 rounded-lg transition-colors',
+            'p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center',
             currentPage === 1
               ? 'text-slate-300 cursor-not-allowed'
               : 'text-slate-600 hover:bg-slate-100'
           )}
           title="Pagina anterior"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
 
         {/* Numeros das paginas */}
@@ -116,7 +128,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 <button
                   onClick={() => onPageChange(page as number)}
                   className={cn(
-                    'min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-colors',
+                    'min-w-[44px] h-11 sm:min-w-[36px] sm:h-9 px-3 rounded-lg text-sm font-medium transition-colors',
                     page === currentPage
                       ? 'bg-primary-500 text-white'
                       : 'text-slate-600 hover:bg-slate-100'
@@ -134,14 +146,14 @@ export const Pagination: React.FC<PaginationProps> = ({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages || totalPages === 0}
           className={cn(
-            'p-2 rounded-lg transition-colors',
+            'p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center',
             currentPage === totalPages || totalPages === 0
               ? 'text-slate-300 cursor-not-allowed'
               : 'text-slate-600 hover:bg-slate-100'
           )}
           title="Proxima pagina"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
 
         {/* Ultima pagina */}
@@ -149,14 +161,14 @@ export const Pagination: React.FC<PaginationProps> = ({
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages || totalPages === 0}
           className={cn(
-            'p-2 rounded-lg transition-colors',
+            'p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center',
             currentPage === totalPages || totalPages === 0
               ? 'text-slate-300 cursor-not-allowed'
               : 'text-slate-600 hover:bg-slate-100'
           )}
           title="Ultima pagina"
         >
-          <ChevronsRight className="w-4 h-4" />
+          <ChevronsRight className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
       </div>
 
@@ -164,9 +176,17 @@ export const Pagination: React.FC<PaginationProps> = ({
       <div className="flex items-center gap-4">
         {showInfo && (
           <p className="text-sm text-slate-600">
-            Mostrando <span className="font-medium">{startItem}</span> a{' '}
-            <span className="font-medium">{endItem}</span> de{' '}
-            <span className="font-medium">{totalItems}</span> registros
+            {/* Desktop */}
+            <span className="hidden sm:inline">
+              Mostrando <span className="font-medium">{startItem}</span> a{' '}
+              <span className="font-medium">{endItem}</span> de{' '}
+              <span className="font-medium">{totalItems}</span> registros
+            </span>
+            {/* Mobile */}
+            <span className="sm:hidden">
+              <span className="font-medium">{startItem}</span>-<span className="font-medium">{endItem}</span> de{' '}
+              <span className="font-medium">{totalItems}</span>
+            </span>
           </p>
         )}
 

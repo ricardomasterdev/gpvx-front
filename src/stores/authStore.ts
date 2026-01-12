@@ -12,6 +12,7 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
 }
 
 interface AuthStore extends AuthState {
@@ -24,6 +25,7 @@ interface AuthStore extends AuthState {
   setGabinetes: (gabinetes: GabineteSimples[]) => void;
   setSubgabinete: (subgabinete: GabineteSimples | null) => void;
   setSubgabinetes: (subgabinetes: GabineteSimples[]) => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -38,6 +40,7 @@ export const useAuthStore = create<AuthStore>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      _hasHydrated: false,
 
       login: (usuario, gabinete, token, refreshToken) =>
         set({
@@ -86,6 +89,9 @@ export const useAuthStore = create<AuthStore>()(
 
       setSubgabinetes: (subgabinetes) =>
         set({ subgabinetes }),
+
+      setHasHydrated: (state) =>
+        set({ _hasHydrated: state }),
     }),
     {
       name: 'gpvx-auth',
@@ -99,6 +105,9 @@ export const useAuthStore = create<AuthStore>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

@@ -18,6 +18,7 @@ import {
   Users,
   X,
   Layers,
+  Menu,
 } from 'lucide-react';
 import { Menu as HeadlessMenu, Transition, Popover } from '@headlessui/react';
 import toast from 'react-hot-toast';
@@ -26,7 +27,7 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { usuario, gabinete, gabinetes, subgabinete, subgabinetes, logout, setGabinete, setTokens, setSubgabinete, setSubgabinetes } = useAuthStore();
-  const { sidebarCollapsed } = useUIStore();
+  const { sidebarCollapsed, toggleSidebarOpen } = useUIStore();
   const [switchingGabinete, setSwitchingGabinete] = useState(false);
   const [switchingSubgabinete, setSwitchingSubgabinete] = useState(false);
   const [gabineteSearchQuery, setGabineteSearchQuery] = useState('');
@@ -221,34 +222,46 @@ export const Header: React.FC = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-30 flex items-center px-6 gap-4 transition-all duration-300 shadow-sm',
-        sidebarCollapsed ? 'left-20' : 'left-64'
+        'fixed top-0 right-0 h-14 sm:h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-30 flex items-center transition-all duration-300 shadow-sm',
+        'left-0 lg:left-64',
+        sidebarCollapsed && 'lg:left-20',
+        'px-2 sm:px-3 lg:px-6',
+        'gap-1 sm:gap-2 lg:gap-4'
       )}
     >
+      {/* Botao hamburger - visivel apenas em mobile */}
+      <button
+        onClick={toggleSidebarOpen}
+        className="lg:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 flex-shrink-0"
+        aria-label="Abrir menu"
+      >
+        <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+      </button>
+
       {/* Seletor de Gabinete com busca - Apenas para super usuario */}
       {usuario?.superUsuario && gabinetes && gabinetes.length > 0 && (
-        <Popover className="relative">
+        <Popover className="relative flex-shrink-0">
           {({ open, close }) => (
             <>
               <Popover.Button
                 className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-xl border transition-all outline-none',
+                  'flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border transition-all outline-none',
                   'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300',
                   open && 'border-amber-400 ring-2 ring-amber-500/20'
                 )}
                 disabled={switchingGabinete}
               >
                 <Building2 className="w-4 h-4 text-amber-600" />
-                <div className="text-left">
-                  <p className="text-xs text-slate-500">
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs text-slate-500 hidden lg:block">
                     <Shield className="inline w-3 h-3 mr-1 text-amber-500" />
                     Gabinete
                   </p>
-                  <p className="text-sm font-medium text-slate-800 truncate max-w-[150px]">
+                  <p className="text-xs sm:text-sm font-medium text-slate-800 truncate max-w-[80px] sm:max-w-[120px] lg:max-w-[150px]">
                     {gabinete?.nome || 'Visao Geral'}
                   </p>
                 </div>
-                <ChevronDown className={cn('w-4 h-4 text-slate-400 transition-transform', open && 'rotate-180')} />
+                <ChevronDown className={cn('w-3 h-3 sm:w-4 sm:h-4 text-slate-400 transition-transform hidden sm:block', open && 'rotate-180')} />
               </Popover.Button>
 
               <Transition
@@ -262,7 +275,7 @@ export const Header: React.FC = () => {
                 afterEnter={() => searchInputRef.current?.focus()}
                 afterLeave={() => setGabineteSearchQuery('')}
               >
-                <Popover.Panel className="absolute left-0 mt-2 w-80 origin-top-left rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden z-50">
+                <Popover.Panel className="fixed lg:absolute left-2 right-2 lg:left-0 lg:right-auto mt-2 lg:w-80 origin-top-left rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden z-50">
                   <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-500">
                     <p className="text-xs font-medium text-white/80">Super Usuario</p>
                     <p className="text-sm font-semibold text-white">Selecione o Gabinete</p>
@@ -367,14 +380,14 @@ export const Header: React.FC = () => {
       {!usuario?.superUsuario && gabinete && !usuario?.pertenceSubgabinete && !canSeeSubgabinetes && (
         <div
           className={cn(
-            'flex items-center gap-2 px-3 py-2 rounded-xl border',
+            'flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border flex-shrink-0',
             'bg-gradient-to-r from-primary-50 to-emerald-50 border-primary-200'
           )}
         >
           <Building2 className="w-4 h-4 text-primary-600" />
-          <div className="text-left">
-            <p className="text-xs text-slate-500">Gabinete</p>
-            <p className="text-sm font-medium text-slate-800 truncate max-w-[180px]">
+          <div className="hidden sm:block text-left">
+            <p className="text-xs text-slate-500 hidden lg:block">Gabinete</p>
+            <p className="text-xs sm:text-sm font-medium text-slate-800 truncate max-w-[80px] sm:max-w-[120px] lg:max-w-[180px]">
               {gabinete.nome}
             </p>
           </div>
@@ -387,14 +400,14 @@ export const Header: React.FC = () => {
           {/* Gabinete Principal */}
           <div
             className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-xl border',
+              'flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border flex-shrink-0',
               'bg-gradient-to-r from-primary-50 to-emerald-50 border-primary-200'
             )}
           >
             <Building2 className="w-4 h-4 text-primary-600" />
-            <div className="text-left">
-              <p className="text-xs text-slate-500">Gabinete</p>
-              <p className="text-sm font-medium text-slate-800 truncate max-w-[150px]">
+            <div className="hidden sm:block text-left">
+              <p className="text-xs text-slate-500 hidden lg:block">Gabinete</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-800 truncate max-w-[60px] sm:max-w-[100px] lg:max-w-[150px]">
                 {usuario.gabinetePrincipal?.nome || gabinete?.nome}
               </p>
             </div>
@@ -402,14 +415,14 @@ export const Header: React.FC = () => {
           {/* Subgabinete do usuario */}
           <div
             className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-xl border',
+              'flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border flex-shrink-0',
               'bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200'
             )}
           >
             <Layers className="w-4 h-4 text-violet-600" />
-            <div className="text-left">
-              <p className="text-xs text-slate-500">Subgabinete</p>
-              <p className="text-sm font-medium text-slate-800 truncate max-w-[150px]">
+            <div className="hidden sm:block text-left">
+              <p className="text-xs text-slate-500 hidden lg:block">Subgabinete</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-800 truncate max-w-[60px] sm:max-w-[100px] lg:max-w-[150px]">
                 {usuario.subgabineteAtual?.nome}
               </p>
             </div>
@@ -421,14 +434,14 @@ export const Header: React.FC = () => {
       {!usuario?.superUsuario && canSeeSubgabinetes && !usuario?.pertenceSubgabinete && (
         <div
           className={cn(
-            'flex items-center gap-2 px-3 py-2 rounded-xl border',
+            'flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border flex-shrink-0',
             'bg-gradient-to-r from-primary-50 to-emerald-50 border-primary-200'
           )}
         >
           <Building2 className="w-4 h-4 text-primary-600" />
-          <div className="text-left">
-            <p className="text-xs text-slate-500">Gabinete</p>
-            <p className="text-sm font-medium text-slate-800 truncate max-w-[180px]">
+          <div className="hidden sm:block text-left">
+            <p className="text-xs text-slate-500 hidden lg:block">Gabinete</p>
+            <p className="text-xs sm:text-sm font-medium text-slate-800 truncate max-w-[80px] sm:max-w-[120px] lg:max-w-[180px]">
               {gabinete?.nome}
             </p>
           </div>
@@ -437,12 +450,12 @@ export const Header: React.FC = () => {
 
       {/* Seletor de Subgabinete - para admin de gabinete principal ou super usuario (nao para usuarios de subgabinete) */}
       {canSeeSubgabinetes && !usuario?.pertenceSubgabinete && (
-        <Popover className="relative">
+        <Popover className="relative flex-shrink-0">
           {({ open, close }) => (
             <>
               <Popover.Button
                 className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-xl border transition-all outline-none',
+                  'flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border transition-all outline-none',
                   usuario?.superUsuario
                     ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300'
                     : 'bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200 hover:border-violet-300',
@@ -451,13 +464,13 @@ export const Header: React.FC = () => {
                 disabled={switchingSubgabinete}
               >
                 <Layers className={cn('w-4 h-4', usuario?.superUsuario ? 'text-amber-600' : 'text-violet-600')} />
-                <div className="text-left">
-                  <p className="text-xs text-slate-500">Subgabinete</p>
-                  <p className="text-sm font-medium text-slate-800 truncate max-w-[150px]">
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs text-slate-500 hidden lg:block">Subgabinete</p>
+                  <p className="text-xs sm:text-sm font-medium text-slate-800 truncate max-w-[60px] sm:max-w-[100px] lg:max-w-[150px]">
                     {subgabinete?.nome || (hasSubgabinetes ? 'Gabinete Principal' : 'Nenhum')}
                   </p>
                 </div>
-                <ChevronDown className={cn('w-4 h-4 text-slate-400 transition-transform', open && 'rotate-180')} />
+                <ChevronDown className={cn('w-3 h-3 sm:w-4 sm:h-4 text-slate-400 transition-transform hidden sm:block', open && 'rotate-180')} />
               </Popover.Button>
 
               <Transition
@@ -471,7 +484,7 @@ export const Header: React.FC = () => {
                 afterEnter={() => subgabineteSearchInputRef.current?.focus()}
                 afterLeave={() => setSubgabineteSearchQuery('')}
               >
-                <Popover.Panel className="absolute left-0 mt-2 w-80 origin-top-left rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden z-50">
+                <Popover.Panel className="fixed lg:absolute left-2 right-2 lg:left-0 lg:right-auto mt-2 lg:w-80 origin-top-left rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden z-50">
                   <div className={cn(
                     "p-2 bg-gradient-to-r",
                     usuario?.superUsuario ? "from-amber-500 to-orange-500" : "from-violet-500 to-purple-500"
@@ -613,16 +626,16 @@ export const Header: React.FC = () => {
         </Popover>
       )}
 
-      {/* Perfil do usuario - exibido para todos */}
+      {/* Perfil do usuario - exibido apenas em telas grandes */}
       {usuario?.perfilNome && (
         <div
           className={cn(
-            'flex items-center gap-2 px-3 py-2 rounded-xl border',
+            'hidden md:flex items-center gap-2 px-2 lg:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border flex-shrink-0',
             'bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200'
           )}
         >
           <User className="w-4 h-4 text-slate-600" />
-          <div className="text-left">
+          <div className="hidden lg:block text-left">
             <p className="text-xs text-slate-500">Perfil</p>
             <p className="text-sm font-medium text-slate-800 truncate max-w-[180px]">
               {usuario.perfilNome}
@@ -634,19 +647,19 @@ export const Header: React.FC = () => {
       {/* Spacer */}
       <div className="flex-1" />
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1 sm:gap-2 lg:gap-3">
         {/* Notificacoes - esconder se super usuario sem gabinete */}
         {!isSuperUserNoGabinete && (
-          <button className="relative p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white" />
+          <button className="relative p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full ring-2 ring-white" />
           </button>
         )}
 
         <HeadlessMenu as="div" className="relative">
-          <HeadlessMenu.Button className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+          <HeadlessMenu.Button className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 rounded-lg sm:rounded-xl hover:bg-slate-100 transition-colors">
             <Avatar name={usuario?.nome} src={usuario?.fotoUrl} size="sm" />
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400 hidden sm:block" />
           </HeadlessMenu.Button>
           <Transition as={Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
             <HeadlessMenu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden">

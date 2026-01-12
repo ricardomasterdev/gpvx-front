@@ -136,7 +136,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Historico de Mensagens */}
       <button
         onClick={() => onViewHistory(instancia)}
-        className="p-2 rounded-lg text-purple-500 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-purple-500 hover:text-purple-600 hover:bg-purple-50 transition-colors"
         title="Historico de Mensagens"
       >
         <History className="w-4 h-4" />
@@ -146,7 +146,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {isConnected && (
         <button
           onClick={() => onSendTest(instancia)}
-          className="p-2 rounded-lg text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
           title="Testar Envio"
         >
           <Send className="w-4 h-4" />
@@ -157,7 +157,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {isConnected ? (
         <button
           onClick={() => onDisconnect(instancia)}
-          className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
           title="Desconectar WhatsApp"
         >
           <Link2Off className="w-4 h-4" />
@@ -166,7 +166,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={() => onConnect(instancia)}
           className={cn(
-            'p-2 rounded-lg transition-colors',
+            'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors',
             isConnecting
               ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
               : 'text-green-500 hover:text-green-600 hover:bg-green-50'
@@ -180,7 +180,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Editar */}
       <button
         onClick={() => onEdit(instancia)}
-        className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
         title="Editar"
       >
         <Edit className="w-4 h-4" />
@@ -190,7 +190,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <button
         onClick={() => onToggleStatus(instancia)}
         className={cn(
-          'p-2 rounded-lg transition-colors',
+          'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors',
           instancia.ativo
             ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
             : 'text-green-500 hover:text-green-600 hover:bg-green-50'
@@ -508,11 +508,11 @@ export const WhatsAppListPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-green-500" />
-            <h1 className="text-2xl font-bold text-slate-900">WhatsApp</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">WhatsApp</h1>
           </div>
           <p className="text-slate-500 mt-1">
             Gerencie as conexoes do WhatsApp do gabinete
@@ -521,7 +521,7 @@ export const WhatsAppListPage: React.FC = () => {
         <Button
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={handleOpenNewModal}
-          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+          className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
         >
           Nova Instancia
         </Button>
@@ -529,7 +529,7 @@ export const WhatsAppListPage: React.FC = () => {
 
       {/* Filtros e busca */}
       <Card>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <SearchFilter
             placeholder="Buscar por nome, telefone..."
             value={searchQuery}
@@ -537,6 +537,7 @@ export const WhatsAppListPage: React.FC = () => {
             filters={FILTERS}
             activeFilters={filters}
             onFilterChange={handleFilterChange}
+            className="w-full sm:w-auto"
           />
           <p className="text-sm text-slate-500">
             {filteredData.length} instancia(s) encontrada(s)

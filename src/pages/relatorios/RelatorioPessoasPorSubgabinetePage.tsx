@@ -288,11 +288,11 @@ export const RelatorioPessoasPorSubgabinetePage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <Building className="w-6 h-6 text-primary-500" />
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
               {showingPeople ? `Pessoas em "${subgabineteSelecionadoNome}"` : 'Pessoas por Subgabinete'}
             </h1>
           </div>
@@ -325,7 +325,7 @@ export const RelatorioPessoasPorSubgabinetePage: React.FC = () => {
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
         <Card className="bg-gradient-to-br from-indigo-50 to-violet-50 border-indigo-200">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
@@ -392,9 +392,10 @@ export const RelatorioPessoasPorSubgabinetePage: React.FC = () => {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <SearchableSelect
               label="Subgabinete"
+              className="w-full sm:w-auto sm:min-w-[250px]"
               value={subgabineteId}
               onChange={(value) => {
                 setSubgabineteId(value);
@@ -419,6 +420,8 @@ export const RelatorioPessoasPorSubgabinetePage: React.FC = () => {
       </Card>
 
       {/* Tabela - Condicional */}
+      <div className="overflow-x-auto -mx-4 sm:mx-0">
+        <div className="min-w-[600px] px-4 sm:px-0">
       {showingPeople ? (
         <DataTable
           columns={columnsPessoa}
@@ -446,6 +449,8 @@ export const RelatorioPessoasPorSubgabinetePage: React.FC = () => {
           onSort={handleSort}
         />
       )}
+        </div>
+      </div>
 
       {/* Paginacao */}
       {totalItems > 0 && (

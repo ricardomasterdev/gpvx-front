@@ -252,26 +252,28 @@ export const DocumentosListPage: React.FC = () => {
       width: '100px',
       align: 'center',
       render: (item) => (
-        <ActionMenu
-          items={[
-            {
-              label: 'Visualizar',
-              icon: <Eye className="w-4 h-4" />,
-              onClick: () => handleView(item),
-            },
-            {
-              label: 'Editar',
-              icon: <Pencil className="w-4 h-4" />,
-              onClick: () => handleEdit(item),
-            },
-            {
-              label: 'Excluir',
-              icon: <Trash2 className="w-4 h-4" />,
-              onClick: () => handleDelete(item),
-              variant: 'danger',
-            },
-          ]}
-        />
+        <div className="min-w-[44px] min-h-[44px] flex items-center justify-center">
+          <ActionMenu
+            items={[
+              {
+                label: 'Visualizar',
+                icon: <Eye className="w-4 h-4" />,
+                onClick: () => handleView(item),
+              },
+              {
+                label: 'Editar',
+                icon: <Pencil className="w-4 h-4" />,
+                onClick: () => handleEdit(item),
+              },
+              {
+                label: 'Excluir',
+                icon: <Trash2 className="w-4 h-4" />,
+                onClick: () => handleDelete(item),
+                variant: 'danger',
+              },
+            ]}
+          />
+        </div>
       ),
     },
   ];
@@ -279,22 +281,22 @@ export const DocumentosListPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <FileText className="w-6 h-6 text-primary-500" />
-            <h1 className="text-2xl font-bold text-slate-900">Documentos</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Documentos</h1>
           </div>
-          <p className="text-slate-500 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 mt-1">
             Gestao de documentos vinculados a pessoas
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Button
             variant="outline"
             leftIcon={<Filter className="w-4 h-4" />}
             onClick={() => setShowFilters(!showFilters)}
-            className={cn(showFilters && 'bg-primary-50 border-primary-300')}
+            className={cn('w-full sm:w-auto', showFilters && 'bg-primary-50 border-primary-300')}
           >
             Filtros
             {hasActiveFilters && (
@@ -304,6 +306,7 @@ export const DocumentosListPage: React.FC = () => {
           <Button
             leftIcon={<Plus className="w-4 h-4" />}
             onClick={handleNew}
+            className="w-full sm:w-auto"
           >
             Novo Documento
           </Button>
@@ -340,27 +343,31 @@ export const DocumentosListPage: React.FC = () => {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <SearchableSelect
-              label="Pessoa"
-              value={pessoaId}
-              onChange={(value) => {
-                setPessoaId(value);
-                setCurrentPage(1);
-              }}
-              options={pessoasOptions}
-              placeholder="Selecione uma pessoa..."
-            />
-            <SearchableSelect
-              label="Tipo de Documento"
-              value={tipoDocumento}
-              onChange={(value) => {
-                setTipoDocumento(value);
-                setCurrentPage(1);
-              }}
-              options={tiposOptions}
-              placeholder="Selecione um tipo..."
-            />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="w-full sm:w-auto sm:min-w-[200px]">
+              <SearchableSelect
+                label="Pessoa"
+                value={pessoaId}
+                onChange={(value) => {
+                  setPessoaId(value);
+                  setCurrentPage(1);
+                }}
+                options={pessoasOptions}
+                placeholder="Selecione uma pessoa..."
+              />
+            </div>
+            <div className="w-full sm:w-auto sm:min-w-[200px]">
+              <SearchableSelect
+                label="Tipo de Documento"
+                value={tipoDocumento}
+                onChange={(value) => {
+                  setTipoDocumento(value);
+                  setCurrentPage(1);
+                }}
+                options={tiposOptions}
+                placeholder="Selecione um tipo..."
+              />
+            </div>
           </div>
         </Card>
       )}

@@ -87,18 +87,18 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Adicionar Tag */}
       <button
         onClick={() => onAddTag(pessoa)}
-        className="p-2 rounded-lg text-purple-500 hover:text-purple-600 hover:bg-purple-50 transition-colors relative"
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-purple-500 hover:text-purple-600 hover:bg-purple-50 transition-colors relative"
         title="Gerenciar Tags"
       >
         <Tag className="w-4 h-4" />
-        <Plus className="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 bg-purple-500 text-white rounded-full" />
+        <Plus className="w-2.5 h-2.5 absolute top-2 right-2 bg-purple-500 text-white rounded-full" />
       </button>
 
       {/* WhatsApp */}
       {hasWhatsApp && (
         <button
           onClick={() => onWhatsAppClick(pessoa)}
-          className="p-2 rounded-lg text-[#25D366] hover:text-[#128C7E] hover:bg-green-50 transition-colors"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-[#25D366] hover:text-[#128C7E] hover:bg-green-50 transition-colors"
           title="Enviar WhatsApp"
         >
           <WhatsAppIcon className="w-5 h-5" />
@@ -109,7 +109,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {pessoa.celular && (
         <a
           href={`tel:${pessoa.celular}`}
-          className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
           title="Ligar"
         >
           <Phone className="w-4 h-4" />
@@ -119,7 +119,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Editar */}
       <button
         onClick={() => onEdit(pessoa)}
-        className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
         title="Editar"
       >
         <Edit className="w-4 h-4" />
@@ -129,7 +129,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <button
         onClick={() => onToggleStatus(pessoa)}
         className={cn(
-          'p-2 rounded-lg transition-colors',
+          'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors',
           pessoa.ativo
             ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
             : 'text-green-500 hover:text-green-600 hover:bg-green-50'
@@ -510,19 +510,20 @@ export const PessoasListPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <Users className="w-6 h-6 text-primary-500" />
-            <h1 className="text-2xl font-bold text-slate-900">Pessoas</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Pessoas</h1>
           </div>
-          <p className="text-slate-500 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 mt-1">
             Gerencie as pessoas cadastradas no gabinete
           </p>
         </div>
         <Button
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={handleOpenNewModal}
+          className="w-full sm:w-auto"
         >
           Nova Pessoa
         </Button>
@@ -530,7 +531,7 @@ export const PessoasListPage: React.FC = () => {
 
       {/* Filtros e busca */}
       <Card>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3">
           <SearchFilter
             placeholder="Buscar por nome, CPF, celular, email..."
             value={searchQuery}
@@ -538,8 +539,9 @@ export const PessoasListPage: React.FC = () => {
             filters={FILTERS}
             activeFilters={filters}
             onFilterChange={handleFilterChange}
+            className="w-full sm:w-auto min-w-0 sm:max-w-md"
           />
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 sm:ml-auto">
             {totalItems} pessoa(s) encontrada(s)
           </p>
         </div>

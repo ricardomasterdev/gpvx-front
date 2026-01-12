@@ -8,7 +8,7 @@ export interface SearchableSelectOption {
   label: string;
 }
 
-interface SearchableSelectProps {
+export interface SearchableSelectProps {
   label?: string;
   value: string;
   onChange: (value: string) => void;
@@ -17,6 +17,7 @@ interface SearchableSelectProps {
   error?: string;
   disabled?: boolean;
   loading?: boolean;
+  className?: string;
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -28,6 +29,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   error,
   disabled,
   loading,
+  className,
 }) => {
   const [query, setQuery] = useState('');
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -43,7 +45,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   }, [options, query]);
 
   return (
-    <div className="w-full">
+    <div className={cn('w-full', className)}>
       {label && (
         <label className="block text-sm font-medium text-slate-700 mb-1.5">
           {label}

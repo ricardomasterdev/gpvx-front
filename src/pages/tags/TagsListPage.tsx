@@ -60,7 +60,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Editar */}
       <button
         onClick={() => onEdit(tag)}
-        className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
         title="Editar"
       >
         <Edit className="w-4 h-4" />
@@ -70,7 +70,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <button
         onClick={() => onToggleStatus(tag)}
         className={cn(
-          'p-2 rounded-lg transition-colors',
+          'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors',
           tag.ativo
             ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
             : 'text-green-500 hover:text-green-600 hover:bg-green-50'
@@ -265,11 +265,11 @@ export const TagsListPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <Tag className="w-6 h-6 text-primary-500" />
-            <h1 className="text-2xl font-bold text-slate-900">Tags</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Tags</h1>
           </div>
           <p className="text-slate-500 mt-1">
             Gerencie as tags para classificar pessoas e demandas
@@ -278,6 +278,7 @@ export const TagsListPage: React.FC = () => {
         <Button
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={handleOpenNewModal}
+          className="w-full sm:w-auto"
         >
           Nova Tag
         </Button>
@@ -285,7 +286,7 @@ export const TagsListPage: React.FC = () => {
 
       {/* Filtros e busca */}
       <Card>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <SearchFilter
             placeholder="Buscar por nome ou descricao..."
             value={searchQuery}
@@ -293,6 +294,7 @@ export const TagsListPage: React.FC = () => {
             filters={FILTERS}
             activeFilters={filters}
             onFilterChange={handleFilterChange}
+            className="w-full sm:w-auto"
           />
           <p className="text-sm text-slate-500">
             {totalItems} tag(s) encontrada(s)

@@ -29,7 +29,13 @@
       "Bash(npx pm2:*)",
       "Bash(set NODE_ENV=production)",
       "Bash(timeout:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(chcp 65001:*)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(PYTHONIOENCODING=utf-8 python:*)",
+      "Bash(PYTHONUTF8=1 python:*)",
+      "Bash(cat:*)"
     ]
   }
 }
