@@ -8,6 +8,8 @@ import {
   Power,
   PowerOff,
   Building2,
+  Search,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 

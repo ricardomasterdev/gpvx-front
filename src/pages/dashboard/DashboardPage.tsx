@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -8,20 +8,20 @@ import {
   CheckCircle,
   Clock,
   Cake,
-  TrendingUp,
   ArrowUpRight,
   Phone,
   MessageCircle,
   Building2,
   Shield,
   UserCog,
-  BarChart3,
   Loader2,
-  Crown,
   UserPlus,
   Calendar,
+  Map,
+  ChevronDown,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Avatar, Button } from '../../components/ui';
+import { MapaCadastrosModal } from '../../components/dashboard';
 import { cn } from '../../utils/cn';
 import { useAuthStore } from '../../stores/authStore';
 import { adminService, DashboardStats as AdminDashboardStats } from '../../services/admin.service';
@@ -256,6 +256,10 @@ const SuperUserDashboard: React.FC = () => {
 // Componente Dashboard do Gabinete (gabinete selecionado)
 const GabineteDashboard: React.FC = () => {
   const { gabinete, subgabinete } = useAuthStore();
+  const [isMapaOpen, setIsMapaOpen] = useState(false);
+  const [isUltimosCadastrosExpanded, setIsUltimosCadastrosExpanded] = useState(false);
+  const [isDemandasRecentesExpanded, setIsDemandasRecentesExpanded] = useState(false);
+  const [isAniversariantesExpanded, setIsAniversariantesExpanded] = useState(false);
 
   const { data: dashboardData, isLoading, isError } = useQuery({
     queryKey: ['gabinete-dashboard', gabinete?.id, subgabinete?.id],
@@ -349,56 +353,91 @@ const GabineteDashboard: React.FC = () => {
         ))}
       </div>
 
+      {/* Mapa de Cadastros */}
+      <Card
+        variant="hover"
+        className="cursor-pointer group bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-200"
+        onClick={() => setIsMapaOpen(true)}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center transition-transform group-hover:scale-110">
+              <Map className="w-6 h-6 text-teal-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-teal-900">Mapa de Cadastros</h3>
+              <p className="text-sm text-teal-700">
+                Visualize a distribuicao geografica dos cadastros no mapa interativo
+              </p>
+            </div>
+          </div>
+          <ArrowUpRight className="w-5 h-5 text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      </Card>
+
       {/* Ultimos Cadastros */}
       <Card padding="none" variant="hover" className="mb-6 group">
-        <Link to="/pessoas">
-          <CardHeader className="p-6 pb-0 cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <UserPlus className="w-5 h-5 text-emerald-600" />
-                </div>
-                <CardTitle>Últimos Cadastros</CardTitle>
+        <CardHeader
+          className="p-6 pb-4 cursor-pointer select-none"
+          onClick={() => setIsUltimosCadastrosExpanded(!isUltimosCadastrosExpanded)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                <UserPlus className="w-5 h-5 text-emerald-600" />
               </div>
-              <div className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+              <CardTitle>Últimos Cadastros</CardTitle>
+              <Badge variant="default" className="ml-2">
+                {dashboardData?.ultimosCadastros?.length || 0}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/pessoas"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
                 Ver todas
                 <ArrowUpRight className="w-4 h-4" />
-              </div>
+              </Link>
+              <ChevronDown className={cn('w-5 h-5 text-slate-400 transition-transform', isUltimosCadastrosExpanded && 'rotate-180')} />
             </div>
-          </CardHeader>
-        </Link>
-        <CardContent className="p-0 mt-4">
-          {dashboardData?.ultimosCadastros && dashboardData.ultimosCadastros.length > 0 ? (
-            <div className="divide-y divide-slate-100">
-              {dashboardData.ultimosCadastros.map((pessoa) => (
-                <Link
-                  key={pessoa.id}
-                  to={`/pessoas`}
-                  className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors"
-                >
-                  <Avatar name={pessoa.nome} size="md" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{pessoa.nome}</p>
-                    <p className="text-xs text-slate-500">
-                      Cadastrado por: {pessoa.usuarioCadastro || 'Sistema'}
-                    </p>
-                  </div>
-                  <div className="text-right flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <div>
-                      <p className="text-xs font-medium text-slate-600">{pessoa.dataCadastro}</p>
-                      <p className="text-xs text-slate-400">{pessoa.horaCadastro}</p>
+          </div>
+        </CardHeader>
+        {isUltimosCadastrosExpanded && (
+          <CardContent className="p-0">
+            {dashboardData?.ultimosCadastros && dashboardData.ultimosCadastros.length > 0 ? (
+              <div className="divide-y divide-slate-100">
+                {dashboardData.ultimosCadastros.map((pessoa) => (
+                  <Link
+                    key={pessoa.id}
+                    to={`/pessoas`}
+                    className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors"
+                  >
+                    <Avatar name={pessoa.nome} size="md" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate">{pessoa.nome}</p>
+                      <p className="text-xs text-slate-500">
+                        Cadastrado por: {pessoa.usuarioCadastro || 'Sistema'}
+                      </p>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-slate-500">
-              Nenhum cadastro recente
-            </div>
-          )}
-        </CardContent>
+                    <div className="text-right flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <div>
+                        <p className="text-xs font-medium text-slate-600">{pessoa.dataCadastro}</p>
+                        <p className="text-xs text-slate-400">{pessoa.horaCadastro}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-slate-500">
+                Nenhum cadastro recente
+              </div>
+            )}
+          </CardContent>
+        )}
       </Card>
 
       {/* Main Content Grid */}
@@ -406,166 +445,148 @@ const GabineteDashboard: React.FC = () => {
         {/* Demandas Recentes */}
         <div className="lg:col-span-2">
           <Card padding="none" variant="hover" className="group">
-            <Link to="/demandas">
-              <CardHeader className="p-6 pb-0 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center transition-transform group-hover:scale-110">
-                      <ClipboardList className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <CardTitle>Demandas Recentes</CardTitle>
+            <CardHeader
+              className="p-6 pb-4 cursor-pointer select-none"
+              onClick={() => setIsDemandasRecentesExpanded(!isDemandasRecentesExpanded)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                    <ClipboardList className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+                  <CardTitle>Demandas Recentes</CardTitle>
+                  <Badge variant="default" className="ml-2">
+                    {dashboardData?.demandasRecentes?.length || 0}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Link
+                    to="/demandas"
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     Ver todas
                     <ArrowUpRight className="w-4 h-4" />
-                  </div>
+                  </Link>
+                  <ChevronDown className={cn('w-5 h-5 text-slate-400 transition-transform', isDemandasRecentesExpanded && 'rotate-180')} />
                 </div>
-              </CardHeader>
-            </Link>
-            <CardContent className="p-0 mt-4">
-              {dashboardData?.demandasRecentes && dashboardData.demandasRecentes.length > 0 ? (
-                <div className="divide-y divide-slate-100">
-                  {dashboardData.demandasRecentes.map((demanda) => (
-                    <Link
-                      key={demanda.id}
-                      to={'/demandas/' + demanda.id}
-                      className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors"
-                    >
-                      <div className={cn('w-1 h-12 rounded-full', prioridadeColors[demanda.prioridade]?.split(' ')[1] || 'bg-blue-500')} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono text-slate-400">{demanda.numeroProtocolo}</span>
-                          <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColors[demanda.status] || 'bg-slate-100 text-slate-800')}>
-                            {demanda.status}
-                          </span>
+              </div>
+            </CardHeader>
+            {isDemandasRecentesExpanded && (
+              <CardContent className="p-0">
+                {dashboardData?.demandasRecentes && dashboardData.demandasRecentes.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {dashboardData.demandasRecentes.map((demanda) => (
+                      <Link
+                        key={demanda.id}
+                        to={'/demandas/' + demanda.id}
+                        className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors"
+                      >
+                        <div className={cn('w-1 h-12 rounded-full', prioridadeColors[demanda.prioridade]?.split(' ')[1] || 'bg-blue-500')} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-mono text-slate-400">{demanda.numeroProtocolo}</span>
+                            <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColors[demanda.status] || 'bg-slate-100 text-slate-800')}>
+                              {demanda.status}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-slate-900 truncate">{demanda.titulo}</p>
+                          <p className="text-xs text-slate-500">{demanda.nomeSolicitante || 'Sem solicitante'}</p>
                         </div>
-                        <p className="text-sm font-medium text-slate-900 truncate">{demanda.titulo}</p>
-                        <p className="text-xs text-slate-500">{demanda.nomeSolicitante || 'Sem solicitante'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-400">{demanda.dataAbertura}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-8 text-center text-slate-500">
-                  Nenhuma demanda recente
-                </div>
-              )}
-            </CardContent>
+                        <div className="text-right">
+                          <p className="text-xs text-slate-400">{demanda.dataAbertura}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-500">
+                    Nenhuma demanda recente
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
         </div>
 
         {/* Aniversariantes */}
         <div>
           <Card variant="hover" className="group">
-            <Link to="/aniversariantes">
-              <CardHeader className="cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center transition-transform group-hover:scale-110">
-                      <Cake className="w-5 h-5 text-pink-600" />
-                    </div>
-                    <CardTitle>Aniversariantes Hoje</CardTitle>
+            <CardHeader
+              className="cursor-pointer select-none"
+              onClick={() => setIsAniversariantesExpanded(!isAniversariantesExpanded)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center transition-transform group-hover:scale-110">
+                    <Cake className="w-5 h-5 text-pink-600" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="info">{dashboardData?.stats.aniversariantesHoje || 0}</Badge>
-                    <ArrowUpRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <CardTitle>Aniversariantes Hoje</CardTitle>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="info">{dashboardData?.stats.aniversariantesHoje || 0}</Badge>
+                  <ChevronDown className={cn('w-5 h-5 text-slate-400 transition-transform', isAniversariantesExpanded && 'rotate-180')} />
+                </div>
+              </div>
+            </CardHeader>
+            {isAniversariantesExpanded && (
+              <CardContent>
+                {dashboardData?.aniversariantesHoje && dashboardData.aniversariantesHoje.length > 0 ? (
+                  <div className="space-y-4">
+                    {dashboardData.aniversariantesHoje.map((pessoa) => (
+                      <div key={pessoa.id} className="flex items-center gap-3">
+                        <Avatar name={pessoa.nome} size="md" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">{pessoa.nome}</p>
+                          <p className="text-xs text-slate-500">{pessoa.idade} anos</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {pessoa.whatsapp && (
+                            <a
+                              href={`https://wa.me/55${pessoa.whatsapp.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                              title="Enviar WhatsApp"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </a>
+                          )}
+                          {pessoa.telefone && (
+                            <a
+                              href={`tel:${pessoa.telefone}`}
+                              className="p-2 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                              title="Ligar"
+                            >
+                              <Phone className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </CardHeader>
-            </Link>
-            <CardContent>
-              {dashboardData?.aniversariantesHoje && dashboardData.aniversariantesHoje.length > 0 ? (
-                <div className="space-y-4">
-                  {dashboardData.aniversariantesHoje.map((pessoa) => (
-                    <div key={pessoa.id} className="flex items-center gap-3">
-                      <Avatar name={pessoa.nome} size="md" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{pessoa.nome}</p>
-                        <p className="text-xs text-slate-500">{pessoa.idade} anos</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {pessoa.whatsapp && (
-                          <a
-                            href={`https://wa.me/55${pessoa.whatsapp.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 transition-colors"
-                            title="Enviar WhatsApp"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </a>
-                        )}
-                        {pessoa.telefone && (
-                          <a
-                            href={`tel:${pessoa.telefone}`}
-                            className="p-2 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                            title="Ligar"
-                          >
-                            <Phone className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-4 text-center text-slate-500 text-sm">
-                  Nenhum aniversariante hoje
-                </div>
-              )}
-              <Link to="/aniversariantes">
-                <Button variant="outline" className="w-full mt-4" size="sm">
-                  Ver todos os aniversariantes
-                </Button>
-              </Link>
-            </CardContent>
+                ) : (
+                  <div className="py-4 text-center text-slate-500 text-sm">
+                    Nenhum aniversariante hoje
+                  </div>
+                )}
+                <Link to="/aniversariantes">
+                  <Button variant="outline" className="w-full mt-4" size="sm">
+                    Ver todos os aniversariantes
+                  </Button>
+                </Link>
+              </CardContent>
+            )}
           </Card>
 
-          {/* Quick Stats */}
-          <Link to="/demandas">
-            <Card variant="hover" className="mt-4 cursor-pointer group">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center transition-transform group-hover:scale-110">
-                      <BarChart3 className="w-5 h-5 text-slate-600" />
-                    </div>
-                    <CardTitle>Resumo</CardTitle>
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Total de pessoas</span>
-                    <span className="text-sm font-semibold text-slate-900">{formatNumber(dashboardData?.stats.totalPessoas || 0)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Total de liderancas</span>
-                    <span className="text-sm font-semibold text-slate-900">{formatNumber(dashboardData?.stats.totalLiderancas || 0)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Demandas em andamento</span>
-                    <span className="text-sm font-semibold text-amber-600">{formatNumber(dashboardData?.stats.demandasEmAndamento || 0)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Demandas concluidas</span>
-                    <span className="text-sm font-semibold text-green-600">{formatNumber(dashboardData?.stats.demandasConcluidas || 0)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Demandas atrasadas</span>
-                    <span className="text-sm font-semibold text-red-600">{formatNumber(dashboardData?.stats.demandasAtrasadas || 0)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
         </div>
       </div>
+
+      {/* Modal do Mapa */}
+      <MapaCadastrosModal
+        isOpen={isMapaOpen}
+        onClose={() => setIsMapaOpen(false)}
+      />
     </div>
   );
 };

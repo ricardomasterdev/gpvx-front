@@ -5,3 +5,5 @@ export { RelatorioPessoasPorLiderancaPage } from './RelatorioPessoasPorLideranca
 export { RelatorioDemandasPorTipoPage } from './RelatorioDemandasPorTipoPage';
 export { RelatorioPessoasPorUsuarioPage } from './RelatorioPessoasPorUsuarioPage';
 export { RelatorioPessoasPorSubgabinetePage } from './RelatorioPessoasPorSubgabinetePage';
+export { RelatorioPessoasPorSetorSubdivisaoPage } from './RelatorioPessoasPorSetorSubdivisaoPage';
+export { RelatorioPessoasPorSetorRegiaoPage } from './RelatorioPessoasPorSetorRegiaoPage';

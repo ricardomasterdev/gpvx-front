@@ -27,6 +27,8 @@ export interface PessoaListItem {
   municipioNome?: string;
   setorId?: string;
   setorNome?: string;
+  setorSubdivisaoId?: string;
+  setorSubdivisaoNome?: string;
   bairro?: string;
   totalDemandas: number;
   ativo: boolean;
@@ -40,6 +42,7 @@ export interface PessoaCreate {
   estadoId: number;
   municipioId: string;
   setorId: string;
+  setorSubdivisaoId?: string;
   genero: Genero;
   // Campos opcionais
   nomeSocial?: string;
@@ -76,6 +79,8 @@ export interface PessoaResponse {
   estadoId: number;
   municipioId: string;
   setorId: string;
+  setorSubdivisaoId?: string;
+  setorSubdivisaoNome?: string;
   nomeSocial?: string;
   cpf?: string;
   rg?: string;
@@ -156,6 +161,8 @@ function mapPessoaListFromApi(data: any): PessoaListItem {
     municipioNome: data.municipio_nome,
     setorId: data.setor_id,
     setorNome: data.setor_nome,
+    setorSubdivisaoId: data.setor_subdivisao_id,
+    setorSubdivisaoNome: data.setor_subdivisao_nome,
     bairro: data.bairro,
     totalDemandas: data.total_demandas || 0,
     ativo: data.ativo,
@@ -174,6 +181,8 @@ function mapPessoaResponseFromApi(data: any): PessoaResponse {
     estadoId: data.estado_id,
     municipioId: data.municipio_id,
     setorId: data.setor_id,
+    setorSubdivisaoId: data.setor_subdivisao_id,
+    setorSubdivisaoNome: data.setor_subdivisao_nome,
     nomeSocial: data.nome_social,
     cpf: data.cpf,
     rg: data.rg,
@@ -211,6 +220,7 @@ function mapPessoaToApi(data: PessoaCreate | PessoaUpdate): any {
   if (data.estadoId !== undefined) result.estado_id = data.estadoId;
   if (data.municipioId !== undefined) result.municipio_id = data.municipioId;
   if (data.setorId !== undefined) result.setor_id = data.setorId;
+  if (data.setorSubdivisaoId !== undefined) result.setor_subdivisao_id = data.setorSubdivisaoId || null;
   if (data.genero !== undefined) result.genero = data.genero;
 
   // Campos opcionais

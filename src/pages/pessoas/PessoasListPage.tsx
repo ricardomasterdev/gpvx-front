@@ -218,6 +218,8 @@ export const PessoasListPage: React.FC = () => {
     onSuccess: (_, pessoa) => {
       queryClient.invalidateQueries({ queryKey: ['pessoas'] });
       queryClient.invalidateQueries({ queryKey: ['gabinete-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-cidades'] });
+      queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-setores'] });
       toast.success(
         pessoa.ativo
           ? `"${pessoa.nome}" desativado`
@@ -235,6 +237,8 @@ export const PessoasListPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pessoas'] });
       queryClient.invalidateQueries({ queryKey: ['gabinete-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-cidades'] });
+      queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-setores'] });
       toast.success('Pessoa removida com sucesso');
     },
     onError: () => {

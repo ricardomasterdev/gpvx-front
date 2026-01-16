@@ -66,6 +66,17 @@ export interface RelatorioSubgabineteItem extends RelatorioItem {
   tipo?: 'subgabinete' | 'pessoa';
 }
 
+export interface RelatorioSetorSubdivisaoItem extends RelatorioItem {
+  setorSubdivisaoId: string;
+  tipo?: 'setor_subdivisao' | 'pessoa';
+}
+
+export interface RelatorioSetorRegiaoItem extends RelatorioItem {
+  setorRegiaoId: string;
+  cor?: string;
+  tipo?: 'setor_regiao' | 'pessoa';
+}
+
 export interface RelatorioResponse<T> {
   items: T[];
   total: number;
@@ -86,6 +97,8 @@ export interface ListRelatorioParams {
   usuarioId?: string;
   subgabineteId?: string;
   liderancaId?: string;
+  setorSubdivisaoId?: string;
+  setorRegiaoId?: string;
 }
 
 // =====================================================
@@ -244,6 +257,51 @@ function mapRelatorioSubgabineteFromApi(data: any): RelatorioSubgabineteItem | R
   };
 }
 
+function mapRelatorioSetorSubdivisaoFromApi(data: any): RelatorioSetorSubdivisaoItem | RelatorioPessoaItem {
+  // Se tem pessoa_id, e uma pessoa (quando subdivisao esta selecionada)
+  if (data.pessoa_id || data.tipo === 'pessoa') {
+    return {
+      pessoaId: data.pessoa_id,
+      nome: data.nome,
+      cpf: data.cpf,
+      telefone: data.telefone,
+      email: data.email,
+      tipo: 'pessoa',
+    } as RelatorioPessoaItem;
+  }
+
+  return {
+    setorSubdivisaoId: data.setor_subdivisao_id,
+    nome: data.nome,
+    quantidade: data.quantidade || data.total || 0,
+    percentual: data.percentual || 0,
+    tipo: 'setor_subdivisao',
+  };
+}
+
+function mapRelatorioSetorRegiaoFromApi(data: any): RelatorioSetorRegiaoItem | RelatorioPessoaItem {
+  // Se tem pessoa_id, e uma pessoa (quando setor regiao esta selecionada)
+  if (data.pessoa_id || data.tipo === 'pessoa') {
+    return {
+      pessoaId: data.pessoa_id,
+      nome: data.nome,
+      cpf: data.cpf,
+      telefone: data.telefone,
+      email: data.email,
+      tipo: 'pessoa',
+    } as RelatorioPessoaItem;
+  }
+
+  return {
+    setorRegiaoId: data.setor_regiao_id,
+    nome: data.nome,
+    cor: data.cor || '#6B7280',
+    quantidade: data.quantidade || data.total || 0,
+    percentual: data.percentual || 0,
+    tipo: 'setor_regiao',
+  };
+}
+
 // =====================================================
 // Relatorios Service
 // =====================================================
@@ -386,6 +444,46 @@ export const relatoriosService = {
 
     return {
       items: (data.items || data).map(mapRelatorioSubgabineteFromApi),
+      total: data.total || data.length || 0,
+      totalGeral: data.total_geral || data.total || 0,
+    };
+  },
+
+  // Pessoas por Setor Subdivisao
+  async pessoasPorSetorSubdivisao(params: ListRelatorioParams = {}): Promise<RelatorioResponse<RelatorioSetorSubdivisaoItem | RelatorioPessoaItem>> {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.perPage) queryParams.append('per_page', String(params.perPage));
+    if (params.search) queryParams.append('search', params.search);
+    if (params.dataInicio) queryParams.append('data_inicio', params.dataInicio);
+    if (params.dataFim) queryParams.append('data_fim', params.dataFim);
+    if (params.setorSubdivisaoId) queryParams.append('setor_subdivisao_id', params.setorSubdivisaoId);
+
+    const query = queryParams.toString();
+    const { data } = await api.get<any>(`/relatorios/pessoas-por-setor-subdivisao${query ? `?${query}` : ''}`);
+
+    return {
+      items: (data.items || data).map(mapRelatorioSetorSubdivisaoFromApi),
+      total: data.total || data.length || 0,
+      totalGeral: data.total_geral || data.total || 0,
+    };
+  },
+
+  // Pessoas por Setor Regiao
+  async pessoasPorSetorRegiao(params: ListRelatorioParams = {}): Promise<RelatorioResponse<RelatorioSetorRegiaoItem | RelatorioPessoaItem>> {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.perPage) queryParams.append('per_page', String(params.perPage));
+    if (params.search) queryParams.append('search', params.search);
+    if (params.dataInicio) queryParams.append('data_inicio', params.dataInicio);
+    if (params.dataFim) queryParams.append('data_fim', params.dataFim);
+    if (params.setorRegiaoId) queryParams.append('setor_regiao_id', params.setorRegiaoId);
+
+    const query = queryParams.toString();
+    const { data } = await api.get<any>(`/relatorios/pessoas-por-setor-regiao${query ? `?${query}` : ''}`);
+
+    return {
+      items: (data.items || data).map(mapRelatorioSetorRegiaoFromApi),
       total: data.total || data.length || 0,
       totalGeral: data.total_geral || data.total || 0,
     };

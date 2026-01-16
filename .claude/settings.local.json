@@ -35,7 +35,21 @@
       "Bash(set PYTHONIOENCODING=utf-8)",
       "Bash(PYTHONIOENCODING=utf-8 python:*)",
       "Bash(PYTHONUTF8=1 python:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(taskkill:*)",
+      "Bash(start /B python:*)",
+      "Bash(ping:*)",
+      "Bash(C:gpvx-backvenvScriptspython.exe:*)",
+      "Bash(npx tsc:*)",
+      "Bash(psql:*)",
+      "Bash(more:*)",
+      "Bash(cmd /c \"dir C:\\\\gpvx-back\\\\server.* 2>&1\")",
+      "Bash(cmd /c \"copy C:\\\\GPVx-Whatsapp\\\\server.key C:\\\\gpvx-back\\\\server.key && copy C:\\\\GPVx-Whatsapp\\\\server.crt C:\\\\gpvx-back\\\\server.crt\")",
+      "Bash(cmd /c \"dir C:\\\\gpvx-back\\\\server.*\")",
+      "Bash(cmd /c \"if exist C:\\\\GPVx-Whatsapp\\\\server.key \\(echo WhatsApp certs exist\\) else \\(echo WhatsApp certs NOT found\\)\")",
+      "Bash(cmd /c \"if exist C:\\\\gpvx-back\\\\server.key \\(echo Backend certs exist\\) else \\(echo Backend certs NOT found\\)\")",
+      "Bash(cmd /c:*)",
+      "Bash(C:/gpvx-back/venv/Scripts/python.exe:*)"
     ]
   }
 }

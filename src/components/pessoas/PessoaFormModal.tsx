@@ -33,6 +33,7 @@ import toast from 'react-hot-toast';
 import { Modal, Button, Input, Select, SearchableSelect, Textarea } from '../ui';
 import { pessoasService, PessoaCreate, PessoaListItem, PessoaResponse, WhatsAppVerificacao } from '../../services/pessoas.service';
 import { auxiliarService, EstadoSimples, MunicipioSimples, SetorSimples } from '../../services/auxiliar.service';
+import { setoresService, SetorListItem as SetorSubdivisao } from '../../services/setores.service';
 import { tagsService, TagListItem } from '../../services/tags.service';
 import { documentosService, Documento, DocumentoCreate, compromissosService, CompromissoSimples, CompromissoCreate } from '../../services/documentos.service';
 import { demandasService, DemandaCreate, DemandaListItem, categoriasService, CategoriaListItem } from '../../services/demandas.service';
@@ -51,6 +52,7 @@ interface PessoaFormData {
   estadoId: string;
   municipioId: string;
   setorId: string;
+  setorSubdivisaoId?: string;
   genero: Genero;
   // Opcionais
   nomeSocial?: string;
@@ -109,9 +111,10 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   const [showNovoSetor, setShowNovoSetor] = useState(false);
   // Estado para busca de CEP
   const [buscandoCEP, setBuscandoCEP] = useState(false);
-  // Refs para controle de mudanca de estado/municipio
+  // Refs para controle de mudanca de estado/municipio/setor
   const prevEstadoRef = useRef<string>('');
   const prevMunicipioRef = useRef<string>('');
+  const prevSetorRef = useRef<string>('');
   // Estados para fluxo de tags apos salvar
   const [showTagsStep, setShowTagsStep] = useState(false);
   const [savedPessoaId, setSavedPessoaId] = useState<string | null>(null);
@@ -215,6 +218,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
 
   const estadoIdSelecionado = watch('estadoId');
   const municipioIdSelecionado = watch('municipioId');
+  const setorIdSelecionado = watch('setorId');
 
   // Buscar dados completos da pessoa quando editar
   const { data: pessoaCompleta, isLoading: isLoadingPessoa } = useQuery({
@@ -297,6 +301,13 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     enabled: isOpen && !!municipioIdSelecionado,
   });
 
+  // Buscar subdivisoes do setor selecionado
+  const { data: subsetores = [], isLoading: isLoadingSubsetores } = useQuery({
+    queryKey: ['subsetores', setorIdSelecionado],
+    queryFn: () => setoresService.listarSubsetores(setorIdSelecionado!),
+    enabled: isOpen && !!setorIdSelecionado,
+  });
+
   // Fechar dropdowns ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -320,6 +331,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
         estadoId: '',
         municipioId: '',
         setorId: '',
+        setorSubdivisaoId: '',
         genero: Genero.NAO_INFORMADO,
         aceitaWhatsapp: true,
         aceitaSms: true,
@@ -329,6 +341,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
       setActiveTab('dados');
       prevEstadoRef.current = '';
       prevMunicipioRef.current = '';
+      prevSetorRef.current = '';
       setLiderancaSearch('');
       setSelectedLideranca(null);
     }
@@ -340,6 +353,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
       // Desabilitar temporariamente os refs para evitar limpar campos
       prevEstadoRef.current = pessoaCompleta.estadoId ? String(pessoaCompleta.estadoId) : '';
       prevMunicipioRef.current = pessoaCompleta.municipioId || '';
+      prevSetorRef.current = pessoaCompleta.setorId || '';
 
       reset({
         nome: pessoaCompleta.nome,
@@ -347,6 +361,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
         estadoId: pessoaCompleta.estadoId ? String(pessoaCompleta.estadoId) : '',
         municipioId: pessoaCompleta.municipioId || '',
         setorId: pessoaCompleta.setorId || '',
+        setorSubdivisaoId: pessoaCompleta.setorSubdivisaoId || '',
         genero: pessoaCompleta.genero || Genero.NAO_INFORMADO,
         nomeSocial: pessoaCompleta.nomeSocial || '',
         cpf: pessoaCompleta.cpf || '',
@@ -388,6 +403,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     if (prevEstadoRef.current && prevEstadoRef.current !== estadoIdSelecionado) {
       setValue('municipioId', '');
       setValue('setorId', '');
+      setValue('setorSubdivisaoId', '');
     }
     prevEstadoRef.current = estadoIdSelecionado;
   }, [estadoIdSelecionado, setValue]);
@@ -396,9 +412,18 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   useEffect(() => {
     if (prevMunicipioRef.current && prevMunicipioRef.current !== municipioIdSelecionado) {
       setValue('setorId', '');
+      setValue('setorSubdivisaoId', '');
     }
     prevMunicipioRef.current = municipioIdSelecionado;
   }, [municipioIdSelecionado, setValue]);
+
+  // Limpar subdivisao quando trocar setor (apenas se mudou de um valor para outro)
+  useEffect(() => {
+    if (prevSetorRef.current && prevSetorRef.current !== setorIdSelecionado) {
+      setValue('setorSubdivisaoId', '');
+    }
+    prevSetorRef.current = setorIdSelecionado || '';
+  }, [setorIdSelecionado, setValue]);
 
   // Mutation para criar setor
   const criarSetorMutation = useMutation({
@@ -422,6 +447,8 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({ queryKey: ['pessoas'], refetchType: 'all' });
       await queryClient.invalidateQueries({ queryKey: ['gabinete-dashboard'] });
+      await queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-cidades'] });
+      await queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-setores'] });
       toast.success('Pessoa cadastrada com sucesso!');
       // Mostra a etapa de tags
       setSavedPessoaId(response.id);
@@ -441,6 +468,8 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
       await queryClient.invalidateQueries({ queryKey: ['pessoas'], refetchType: 'all' });
       await queryClient.invalidateQueries({ queryKey: ['pessoa', pessoa?.id] });
       await queryClient.invalidateQueries({ queryKey: ['gabinete-dashboard'] });
+      await queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-cidades'] });
+      await queryClient.invalidateQueries({ queryKey: ['mapa-cadastros-setores'] });
       toast.success('Pessoa atualizada com sucesso!');
       // Mostra a etapa de tags
       setSavedPessoaId(pessoa!.id);
@@ -819,6 +848,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
       estadoId: Number(data.estadoId),
       municipioId: data.municipioId,
       setorId: data.setorId,
+      setorSubdivisaoId: data.setorSubdivisaoId || undefined,
       genero: data.genero,
       nomeSocial: data.nomeSocial || undefined,
       cpf: data.cpf || undefined,
@@ -865,6 +895,7 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
   const estadoOptions = estados.map((e) => ({ value: String(e.id), label: `${e.sigla} - ${e.nome}` }));
   const municipioOptions = municipios.map((m) => ({ value: m.id, label: m.nome }));
   const setorOptions = setores.map((s) => ({ value: s.id, label: s.nome }));
+  const subsetorOptions = subsetores.map((s) => ({ value: s.id, label: s.nome }));
 
   // Handler para selecionar lideranca
   const handleSelectLideranca = (pessoa: PessoaListItem) => {
@@ -1316,6 +1347,36 @@ export const PessoaFormModal: React.FC<PessoaFormModalProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Subdivisao do Setor (opcional) - destaque laranja quando disponivel */}
+              {setorIdSelecionado && (isLoadingSubsetores || subsetorOptions.length > 0) && (
+                <div className="md:col-span-2">
+                  <div className={`rounded-lg p-4 ${subsetorOptions.length > 0 ? 'bg-orange-100 border-2 border-orange-500 shadow-md' : 'bg-gray-50'}`}>
+                    {subsetorOptions.length > 0 && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertCircle className="w-5 h-5 text-orange-600" />
+                        <span className="text-sm font-bold text-orange-700">
+                          Este setor possui {subsetorOptions.length} subdivisao(oes) - selecione se desejar
+                        </span>
+                      </div>
+                    )}
+                    <Controller
+                      name="setorSubdivisaoId"
+                      control={control}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          label="Subdivisao (opcional)"
+                          options={subsetorOptions}
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          placeholder={isLoadingSubsetores ? "Carregando subdivisoes..." : "Selecione uma subdivisao..."}
+                          loading={isLoadingSubsetores}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
 
               <Input
                 label="Nome Social"

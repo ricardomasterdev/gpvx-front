@@ -14,6 +14,8 @@ import { DemandasListPage } from './pages/demandas';
 import { UsuariosGabineteListPage } from './pages/usuarios';
 import { WhatsAppListPage } from './pages/whatsapp';
 import { RegioesListPage } from './pages/regioes';
+import { SetoresListPage } from './pages/setores';
+import { SetorRegioesListPage } from './pages/setor-regioes';
 import {
   RelatorioPessoasPorTagsPage,
   RelatorioPessoasPorCidadePage,
@@ -22,8 +24,11 @@ import {
   RelatorioDemandasPorTipoPage,
   RelatorioPessoasPorUsuarioPage,
   RelatorioPessoasPorSubgabinetePage,
+  RelatorioPessoasPorSetorSubdivisaoPage,
+  RelatorioPessoasPorSetorRegiaoPage,
 } from './pages/relatorios';
 import { DocumentosListPage } from './pages/documentos';
+import { MapaFullscreenPage } from './pages/mapa/MapaFullscreenPage';
 import { useAuthStore } from './stores/authStore';
 import { LoadingScreen } from './components/ui';
 
@@ -69,6 +74,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
           </Route>
+          {/* Mapa Fullscreen - Protected but without MainLayout */}
+          <Route path="/mapa-fullscreen" element={<ProtectedRoute><MapaFullscreenPage /></ProtectedRoute>} />
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/pessoas" element={<PessoasListPage />} />
@@ -82,10 +89,14 @@ function App() {
             <Route path="/tags" element={<TagsListPage />} />
             <Route path="/usuarios" element={<UsuariosGabineteListPage />} />
             <Route path="/regioes" element={<RegioesListPage />} />
+            <Route path="/setores" element={<SetoresListPage />} />
+            <Route path="/setor-regioes" element={<SetorRegioesListPage />} />
             {/* Rotas de Relatorios */}
             <Route path="/relatorios/pessoas-por-tags" element={<RelatorioPessoasPorTagsPage />} />
             <Route path="/relatorios/pessoas-por-cidade" element={<RelatorioPessoasPorCidadePage />} />
             <Route path="/relatorios/pessoas-por-regiao" element={<RelatorioPessoasPorRegiaoPage />} />
+            <Route path="/relatorios/pessoas-por-setor-subdivisao" element={<RelatorioPessoasPorSetorSubdivisaoPage />} />
+            <Route path="/relatorios/pessoas-por-setor-regiao" element={<RelatorioPessoasPorSetorRegiaoPage />} />
             <Route path="/relatorios/pessoas-por-lideranca" element={<RelatorioPessoasPorLiderancaPage />} />
             <Route path="/relatorios/demandas-por-tipo" element={<RelatorioDemandasPorTipoPage />} />
             <Route path="/relatorios/pessoas-por-usuario" element={<RelatorioPessoasPorUsuarioPage />} />
