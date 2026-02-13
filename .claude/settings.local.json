@@ -49,7 +49,9 @@
       "Bash(cmd /c \"if exist C:\\\\GPVx-Whatsapp\\\\server.key \\(echo WhatsApp certs exist\\) else \\(echo WhatsApp certs NOT found\\)\")",
       "Bash(cmd /c \"if exist C:\\\\gpvx-back\\\\server.key \\(echo Backend certs exist\\) else \\(echo Backend certs NOT found\\)\")",
       "Bash(cmd /c:*)",
-      "Bash(C:/gpvx-back/venv/Scripts/python.exe:*)"
+      "Bash(C:/gpvx-back/venv/Scripts/python.exe:*)",
+      "Bash(xcopy:*)",
+      "Bash(find:*)"
     ]
   }
 }

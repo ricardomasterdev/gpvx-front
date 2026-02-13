@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useMemo, useRef } from 'react';
 import { Combobox, Transition } from '@headlessui/react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Search } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 export interface SearchableSelectOption {
@@ -55,9 +55,12 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         {({ open }) => (
           <div className="relative">
             <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-4 h-4 text-slate-400" />
+              </div>
               <Combobox.Input
                 className={cn(
-                  'w-full px-4 py-2.5 pr-10 rounded-xl border bg-white cursor-pointer',
+                  'w-full pl-10 pr-10 py-2.5 rounded-xl border bg-white cursor-pointer',
                   'focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200',
                   error
                     ? 'border-red-300 focus:ring-red-500'

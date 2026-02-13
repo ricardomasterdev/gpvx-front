@@ -271,8 +271,8 @@ function mapRelatorioSetorSubdivisaoFromApi(data: any): RelatorioSetorSubdivisao
   }
 
   return {
-    setorSubdivisaoId: data.setor_subdivisao_id,
-    nome: data.nome,
+    setorSubdivisaoId: data.setor_subdivisao_id || data.id || data.setor_id,
+    nome: data.nome || data.setor_nome || data.subdivisao_nome,
     quantidade: data.quantidade || data.total || 0,
     percentual: data.percentual || 0,
     tipo: 'setor_subdivisao',
@@ -293,9 +293,9 @@ function mapRelatorioSetorRegiaoFromApi(data: any): RelatorioSetorRegiaoItem | R
   }
 
   return {
-    setorRegiaoId: data.setor_regiao_id,
-    nome: data.nome,
-    cor: data.cor || '#6B7280',
+    setorRegiaoId: data.setor_regiao_id || data.id || data.regiao_id,
+    nome: data.nome || data.regiao_nome || data.setor_regiao_nome,
+    cor: data.cor || data.setor_regiao_cor || '#6B7280',
     quantidade: data.quantidade || data.total || 0,
     percentual: data.percentual || 0,
     tipo: 'setor_regiao',

@@ -41,7 +41,7 @@ export const RelatorioDemandasPorTipoPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [sortBy, setSortBy] = useState<string>('quantidade');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   // Filtros
   const [categoriaId, setCategoriaId] = useState<string>('');
@@ -190,17 +190,6 @@ export const RelatorioDemandasPorTipoPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            leftIcon={<Filter className="w-4 h-4" />}
-            onClick={() => setShowFilters(!showFilters)}
-            className={cn(showFilters && 'bg-primary-50 border-primary-300')}
-          >
-            Filtros
-            {hasActiveFilters && (
-              <span className="ml-2 w-2 h-2 rounded-full bg-primary-500" />
-            )}
-          </Button>
-          <Button
-            variant="outline"
             leftIcon={<Download className="w-4 h-4" />}
             onClick={handleExport}
           >
@@ -252,7 +241,7 @@ export const RelatorioDemandasPorTipoPage: React.FC = () => {
 
       {/* Filtros */}
       {showFilters && (
-        <Card className="border-primary-100 bg-primary-50/30">
+        <Card className="border-orange-200 bg-orange-50/50">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-slate-900">Filtros</h3>
             {hasActiveFilters && (
